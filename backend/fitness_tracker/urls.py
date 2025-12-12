@@ -21,6 +21,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/activities/',include('activities.urls')),
     path('api-auth/', include('rest_framework.urls')),
+    path('',lambda request:JsonResponse({"message":"Welcome to the Fitness Tracker API!Visit /api/activities/to start."}))
     
 
 ]
