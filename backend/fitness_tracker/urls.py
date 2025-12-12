@@ -14,6 +14,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from django.http import JsonResponse
 from django.contrib import admin
 from django.http import JsonResponse
 from django.urls import path, include
@@ -24,6 +25,7 @@ urlpatterns = [
     path('api-auth/', include('rest_framework.urls')),
     path('',lambda request:JsonResponse({"message":"Welcome to the Fitness Tracker API!Visit /api/activities/to start."}))
     
+
 
 ]
  # New line for DRF auth
