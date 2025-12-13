@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Activities,
+from .models import Activity
 
 admin.site.register(Activity)
 
