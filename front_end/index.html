@@ -111,29 +111,7 @@
 <script src="assets/js/auth.js"></script>
 <script src="assets/js/api.js"></script>
 
-<script>
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
 
-        if (!username || !password) {
-            document.getElementById('error').textContent = 'Please fill all fields';
-            return;
-        }
-
-        try {
-            // Call your login function from auth.js (assuming it returns tokens)
-            const tokens = await login(username, password);  // Replace with your actual function name
-            // Save tokens to localStorage
-            localStorage.setItem('access', tokens.access);
-            localStorage.setItem('refresh', tokens.refresh);
-            window.location.href = 'dashboard.html';  // Redirect after success
-        } catch (err) {
-            document.getElementById('error').textContent = 'Invalid credentials';
-        }
-    });
-</script>
 
 </body>
 </html>
