@@ -1,5 +1,5 @@
 // API Helper for FitTrack Frontend
-const BASE_URL = 'http://127.0.0.1:8000';  // Local backend
+const BASE_URL = 'https://fittrack-api-7b9k.onrender.com';  // Local backend
 
 // Token from localStorage (for JWT - we'll use later)
 function getToken() {
