@@ -22,7 +22,6 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api',include('activities.urls')),
-    path('api-auth/', include('rest_framework.urls')),
     path('',lambda request:JsonResponse({"message":"Welcome to the Fitness Tracker API!Visit /api/activities/to start."}))
     
 
