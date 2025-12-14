@@ -91,7 +91,7 @@
         };
 
         try {
-            const response = await apiPost('/register/', data);
+            const response = await apiPost('/activities/register', data);
             // Save tokens
             localStorage.setItem('access', response.access);
             localStorage.setItem('refresh', response.refresh);
