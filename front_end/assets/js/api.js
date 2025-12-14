@@ -1,25 +1,44 @@
-const BASE_URL = "http://127.0.0.1:8000/api";
+// API Helper for FitTrack Frontend
+const BASE_URL = 'http://127.0.0.1:8000';  // Local backend
 
+// Token from localStorage (for JWT - we'll use later)
 function getToken() {
     return localStorage.getItem("access");
 }
 
+// Generic GET request
 async function apiGet(endpoint) {
-    return fetch(BASE_URL + endpoint, {
+    const response = await fetch(BASE_URL + endpoint, {
         headers: {
-            "Authorization": "Bearer " + getToken(),
+            "Authorization": `Bearer ${getToken() || ''}`,  // Safe if no token
             "Content-Type": "application/json"
         }
-    }).then(r => r.json());
+    });
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
 }
 
+// Generic POST request
 async function apiPost(endpoint, data) {
-    return fetch(BASE_URL + endpoint, {
+    const response = await fetch(BASE_URL + endpoint, {
         method: "POST",
         headers: {
-            "Authorization": "Bearer " + getToken(),
+            "Authorization": `Bearer ${getToken() || ''}`,
             "Content-Type": "application/json"
         },
         body: JSON.stringify(data)
-    }).then(r => r.json());
+    });
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
 }
+
+// Specific endpoints
+const ACTIVITIES_ENDPOINT = '/api/activities/';
+
+// Example usage in other files:
+// await apiGet(ACTIVITIES_ENDPOINT)
+// await apiPost(ACTIVITIES_ENDPOINT, newActivityData)

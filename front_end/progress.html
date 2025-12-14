@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitTrack - Training Plan</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <style>
+        body {
+            background: #f8f9fa;
+        }
+        .header {
+            background: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .logo span {
+            color: #28a745;
+        }
+        .plan-card {
+            margin: 20px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            padding: 20px;
+            text-align: center;
+        }
+        .clipboard-icon {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 20px;
+        }
+        .badge-start {
+            background: #fff3cd;
+            color: #856404;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 18px;
+            display: inline-block;
+            margin-bottom: 30px;
+        }
+        .schedule-item {
+            display: flex;
+            align-items: center;
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .schedule-icon {
+            width: 50px;
+            height: 50px;
+            margin-right: 15px;
+        }
+        .schedule-text {
+            flex: 1;
+            text-align: left;
+        }
+        .day {
+            font-size: 14px;
+            color: #6c757d;
+        }
+        .activity {
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: white;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            padding: 10px 0;
+        }
+        .bottom-nav a {
+            color: #6c757d;
+            text-decoration: none;
+            font-size: 12px;
+        }
+        .bottom-nav a.active {
+            color: #007bff;
+        }
+        .bottom-nav i {
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="header">
+        <div class="logo">Fit<span>✔</span>Track</div>
+        <h4>Training Plan</h4>
+    </div>
+
+    <!-- Plan Card -->
+    <div class="plan-card">
+        <!-- Clipboard Icon -->
+        <img src="https://www.shutterstock.com/shutterstock/videos/1102279767/thumb/1.jpg?ip=x480" alt="Training Plan Clipboard" class="clipboard-icon rounded">
+
+        <div class="badge-start">STARTING IN 2 DAYS</div>
+
+        <h5 class="mb-4">Weekly Schedule</h5>
+
+        <!-- Schedule Items -->
+        <div class="schedule-item">
+            <img src="https://thumbs.dreamstime.com/b/orange-dumbbell-weight-fitness-gym-exercise-icon-vector-design-generative-ai-representing-weightlifting-training-workouts-382697259.jpg" alt="Strength" class="schedule-icon rounded">
+            <div class="schedule-text">
+                <div class="day">Monday</div>
+                <div class="activity">Strength</div>
+            </div>
+        </div>
+
+        <div class="schedule-item">
+            <img src="https://media.post.rvohealth.io/wp-content/uploads/sites/2/2020/07/174589-4.Interval-Run.png" alt="Intervals" class="schedule-icon rounded">
+            <div class="schedule-text">
+                <div class="day">Tuesday</div>
+                <div class="activity">Intervals</div>
+            </div>
+        </div>
+
+        <div class="schedule-item">
+            <img src="https://www.creativefabrica.com/wp-content/uploads/2021/04/29/Bike-Cycling-Sport-Icon-Blue-Graphics-11500030-1-1-580x387.jpg" alt="Cycling" class="schedule-icon rounded">
+            <div class="schedule-text">
+                <div class="day">Thursday</div>
+                <div class="activity">Cycling</div>
+            </div>
+        </div>
+
+        <!-- Add more days as needed -->
+    </div>
+
+    <!-- Bottom Navigation (Progress active) -->
+    <div class="bottom-nav text-center">
+        <div class="row">
+            <div class="col"><a href="index.html"><i class="fas fa-home"></i><br>Home</a></div>
+            <div class="col"><a href="progress.html" class="active"><i class="fas fa-chart-line"></i><br>Progress</a></div>
+            <div class="col"><a href="dashboard.html"><i class="fas fa-dumbbell"></i><br>Workouts</a></div>
+            <div class="col"><a href="profile.html"><i class="fas fa-user"></i><br>Profile</a></div>
+        </div>
+    </div>
+
+</body>
+</html>

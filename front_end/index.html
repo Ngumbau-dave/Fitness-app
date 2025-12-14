@@ -1,30 +1,132 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Login</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitTrack - Login</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Your custom styles (keep if you have overrides) -->
     <link rel="stylesheet" href="assets/css/styles.css">
 
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
+    <style>
+        body {
+            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.6)), url('https://media.istockphoto.com/id/1326480457/photo/working-out-man-training-legs-and-core-ab-workout-doing-lunge-twist-exercise-with-medicine.jpg?s=612x612&w=0&k=20&c=4WgHty6gNkJpQ_nuOoKT5FdY0HOc9jvK4Tb4vC_ddWk=') center/cover no-repeat;
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Arial', sans-serif;
+        }
+        .login-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+            max-width: 420px;
+            width: 90%;
+        }
+        .hero-section {
+            background: #007bff;
+            color: white;
+            text-align: center;
+            padding: 30px 20px;
+        }
+        .logo {
+            font-size: 36px;
+            font-weight: bold;
+        }
+        .logo span {
+            color: #28a745; /* Green check */
+        }
+        .tagline {
+            font-size: 24px;
+            margin: 15px 0 5px;
+        }
+        .subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        .form-section {
+            padding: 40px;
+        }
+        .btn-login {
+            background: #007bff;
+            border: none;
+            padding: 12px;
+            font-size: 18px;
+        }
+        .btn-login:hover {
+            background: #0056b3;
+        }
+        #error {
+            min-height: 24px;
+        }
+    </style>
 </head>
-<body class="bg-light">
+<body>
 
-<div class="container mt-5">
-    <div class="col-md-4 offset-md-4 card p-4 shadow">
-        <h3 class="text-center mb-3">Login</h3>
+<div class="login-card">
+    <!-- Hero Section with Logo and Tagline -->
+    <div class="hero-section">
+        <div class="logo">Fit<span>✔</span>Track</div>
+        <div class="tagline">PUSH FURTHER. TRACK BETTER.</div>
+        <div class="subtitle">YOUR JOURNEY TO PEAK PERFORMANCE STARTS NOW.</div>
+    </div>
 
-        <input id="username" class="form-control mb-3" placeholder="Username">
-        <input id="password" type="password" class="form-control mb-3" placeholder="Password">
+    <!-- Login Form -->
+    <div class="form-section">
+        <h3 class="text-center mb-4">Login</h3>
 
-        <button onclick="login()" class="btn btn-primary w-100">Login</button>
+        <form onsubmit="return false;">
+            <div class="mb-3">
+                <input id="username" class="form-control form-control-lg" placeholder="Username" required>
+            </div>
+            <div class="mb-3">
+                <input id="password" type="password" class="form-control form-control-lg" placeholder="Password" required>
+            </div>
 
-        <p id="error" class="text-danger mt-2"></p>
+            <button onclick="login()" class="btn btn-primary btn-login w-100">Login</button>
+
+            <p id="error" class="text-danger text-center mt-3 mb-0"></p>
+        </form>
+
+        <div class="text-center mt-4">
+            <small>Don't have an account? <a href="#">Sign up</a></small>
+        </div>
     </div>
 </div>
 
+<!-- Your existing auth.js for real login logic -->
 <script src="assets/js/auth.js"></script>
+<script src="assets/js/api.js"></script>
+
+<script>
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        if (!username || !password) {
+            document.getElementById('error').textContent = 'Please fill all fields';
+            return;
+        }
+
+        try {
+            // Call your login function from auth.js (assuming it returns tokens)
+            const tokens = await login(username, password);  // Replace with your actual function name
+            // Save tokens to localStorage
+            localStorage.setItem('access', tokens.access);
+            localStorage.setItem('refresh', tokens.refresh);
+            window.location.href = 'dashboard.html';  // Redirect after success
+        } catch (err) {
+            document.getElementById('error').textContent = 'Invalid credentials';
+        }
+    });
+</script>
 
 </body>
 </html>
