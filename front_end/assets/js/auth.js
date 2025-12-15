@@ -14,11 +14,12 @@ async function loginUser(event) {
     }
 
     try {
-        const response = await fetch('https://fittrack-api-7b9k.onrender.com, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username, password })
-        });
+        const response = await fetch('https://fittrack-api-7b9k.onrender.com/api/token/', {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password })
+});
+
 
         if (!response.ok) {
             throw new Error('Invalid credentials');
