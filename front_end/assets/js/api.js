@@ -3,7 +3,7 @@ const BASE_URL = 'https://fittrack-api-7b9k.onrender.com';  // Local backend
 
 // Token from localStorage (for JWT - we'll use later)
 function getToken() {
-    return localStorage.getItem("access");
+    return localStorage.getItem("access_token");
 }
 
 // Generic GET request
