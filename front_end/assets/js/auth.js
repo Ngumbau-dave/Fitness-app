@@ -5,39 +5,34 @@ const API_BASE = 'https://fittrack-api-7b9k.onrender.com';
 async function loginUser(event) {
     event.preventDefault();
 
-    const username = document.getElementById("username").value.trim();
-    const password = document.getElementById("password").value;
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+    const errorEl = document.getElementById('error');
 
     if (!username || !password) {
-        alert("Please enter username and password");
+        errorEl.textContent = 'Please fill in both fields';
         return;
     }
 
+    errorEl.textContent = '';
+
     try {
-        const response = await fetch('https://fittrack-api-7b9k.onrender.com/api/token/', {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, password })
-});
+        const data = await apiPost('/api/token/', { username, password });
 
+        localStorage.setItem('access_token', data.access);
+        localStorage.setItem('refresh_token', data.refresh);  // Optional but good to have
 
-        if (!response.ok) {
-            throw new Error('Invalid credentials');
+        // Redirect to your main app page
+        window.location.href = 'dashboard.html';  // Or 'index.html', etc.
+    } catch (err) {
+        console.error(err);
+        if (err.message.includes('401')) {
+            errorEl.textContent = 'Invalid username or password';
+        } else {
+            errorEl.textContent = 'Login failed – try again later';
         }
-
-        const data = await response.json();
-
-        // Save both tokens (access for API calls, refresh for renewal)
-        localStorage.setItem("access_token", data.access);
-        localStorage.setItem("refresh_token", data.refresh);
-
-        alert("Login successful!");
-        window.location.href = "dashboard.html";
-    } catch (error) {
-        alert("Login failed: " + error.message);
     }
 }
-
 // Logout
 function logout() {
     localStorage.removeItem("access_token");
