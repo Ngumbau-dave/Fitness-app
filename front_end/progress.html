@@ -3,152 +3,154 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FitTrack - Training Plan</title>
+    <title>FitTrack - Progress</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body {
-            background: #f8f9fa;
-        }
-        .header {
-            background: white;
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .logo {
-            font-size: 32px;
-            font-weight: bold;
-            color: #007bff;
-        }
-        .logo span {
-            color: #28a745;
-        }
-        .plan-card {
-            margin: 20px;
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            padding: 20px;
-            text-align: center;
-        }
-        .clipboard-icon {
-            width: 120px;
-            height: 120px;
-            margin: 0 auto 20px;
-        }
-        .badge-start {
-            background: #fff3cd;
-            color: #856404;
-            padding: 10px 20px;
-            border-radius: 50px;
-            font-weight: bold;
-            font-size: 18px;
-            display: inline-block;
-            margin-bottom: 30px;
-        }
-        .schedule-item {
-            display: flex;
-            align-items: center;
-            background: #f8f9fa;
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 15px;
-        }
-        .schedule-icon {
-            width: 50px;
-            height: 50px;
-            margin-right: 15px;
-        }
-        .schedule-text {
-            flex: 1;
-            text-align: left;
-        }
-        .day {
-            font-size: 14px;
-            color: #6c757d;
-        }
-        .activity {
-            font-weight: bold;
-            font-size: 18px;
-        }
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            background: white;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-            padding: 10px 0;
-        }
-        .bottom-nav a {
-            color: #6c757d;
-            text-decoration: none;
-            font-size: 12px;
-        }
-        .bottom-nav a.active {
-            color: #007bff;
-        }
-        .bottom-nav i {
-            font-size: 24px;
-        }
+        body { background: #f8f9fa; min-height: 100vh; display: flex; flex-direction: column; }
+        .header { background: white; padding: 20px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .logo { font-size: 32px; font-weight: bold; color: #007bff; }
+        .logo span { color: #28a745; }
+        .main-content { flex: 1; padding-bottom: 70px; }
+        .stats-card { background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); padding: 20px; margin-bottom: 20px; }
+        .chart-container { position: relative; height: 300px; }
+
+        /* Bottom Nav & Sidebar (same as profile) */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); padding: 10px 0; z-index: 1000; }
+        .bottom-nav a { color: #6c757d; text-decoration: none; font-size: 12px; }
+        .bottom-nav a.active { color: #007bff; }
+        .bottom-nav i { font-size: 24px; }
+
+        .sidebar { width: 250px; background: white; height: 100vh; position: fixed; left: 0; top: 0; padding-top: 100px; box-shadow: 2px 0 10px rgba(0,0,0,0.1); }
+        .sidebar a { display: block; padding: 15px 20px; color: #6c757d; text-decoration: none; font-size: 16px; }
+        .sidebar a.active { background: #e2f1ff; color: #007bff; border-left: 4px solid #007bff; }
+        .sidebar i { margin-right: 10px; }
+
+        @media (max-width: 767px) { .sidebar { display: none; } .main-content { margin-left: 0; padding: 20px; } .chart-container { height: 250px; } }
+        @media (min-width: 768px) { .bottom-nav { display: none; } .main-content { margin-left: 250px; padding: 40px; } .chart-container { height: 350px; } }
+        @media (min-width: 1200px) { .main-content { padding: 60px; } }
     </style>
 </head>
 <body>
 
-    <!-- Header -->
-    <div class="header">
-        <div class="logo">Fit<span>✔</span>Track</div>
-        <h4>Training Plan</h4>
+    <!-- Sidebar (Desktop) -->
+    <div class="sidebar d-none d-md-block">
+        <div class="text-center mb-5">
+            <img src="https://placehold.co/100x100" alt="Profile" class="rounded-circle mb-3" width="100">
+            <h5>DAVID MUSYOKA</h5>
+            <p>DAVIDNGUMBAU29@GMAIL.COM</p>
+        </div>
+        <a href="index.html"><i class="fas fa-home"></i> Home</a>
+        <a href="progress.html" class="active"><i class="fas fa-chart-line"></i> Progress</a>
+        <a href="add_activity.html"><i class="fas fa-dumbbell"></i> Workouts</a>
+        <a href="profile.html"><i class="fas fa-user"></i> Profile</a>
     </div>
 
-    <!-- Plan Card -->
-    <div class="plan-card">
-        <!-- Clipboard Icon -->
-        <img src="https://www.shutterstock.com/shutterstock/videos/1102279767/thumb/1.jpg?ip=x480" alt="Training Plan Clipboard" class="clipboard-icon rounded">
-
-        <div class="badge-start">STARTING IN 2 DAYS</div>
-
-        <h5 class="mb-4">Weekly Schedule</h5>
-
-        <!-- Schedule Items -->
-        <div class="schedule-item">
-            <img src="https://thumbs.dreamstime.com/b/orange-dumbbell-weight-fitness-gym-exercise-icon-vector-design-generative-ai-representing-weightlifting-training-workouts-382697259.jpg" alt="Strength" class="schedule-icon rounded">
-            <div class="schedule-text">
-                <div class="day">Monday</div>
-                <div class="activity">Strength</div>
-            </div>
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Mobile Header -->
+        <div class="header d-md-none">
+            <div class="logo">Fit<span>✔</span>Track</div>
+            <h4>Progress</h4>
         </div>
 
-        <div class="schedule-item">
-            <img src="https://media.post.rvohealth.io/wp-content/uploads/sites/2/2020/07/174589-4.Interval-Run.png" alt="Intervals" class="schedule-icon rounded">
-            <div class="schedule-text">
-                <div class="day">Tuesday</div>
-                <div class="activity">Intervals</div>
+        <div class="container">
+            <!-- Stats Cards (Dynamic later) -->
+            <div class="row text-center">
+                <div class="col-6 col-md-3 mb-4"><div class="stats-card"><h3 id="total-workouts">15</h3><p>Total Workouts</p></div></div>
+                <div class="col-6 col-md-3 mb-4"><div class="stats-card"><h3 id="total-distance">45 km</h3><p>Total Distance</p></div></div>
+                <div class="col-6 col-md-3 mb-4"><div class="stats-card"><h3 id="avg-duration">35 min</h3><p>Avg Duration</p></div></div>
+                <div class="col-6 col-md-3 mb-4"><div class="stats-card"><h3 id="goal-percent">80%</h3><p>Goal Progress</p></div></div>
+            </div>
+
+            <!-- Charts -->
+            <div class="row">
+                <div class="col-12 col-lg-6 mb-4">
+                    <div class="stats-card">
+                        <h5 class="text-center">Weekly Workouts</h5>
+                        <div class="chart-container">
+                            <canvas id="weeklyChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-6 mb-4">
+                    <div class="stats-card">
+                        <h5 class="text-center">Distance Over Time</h5>
+                        <div class="chart-container">
+                            <canvas id="distanceChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 mb-4">
+                    <div class="stats-card text-center">
+                        <h5>Goal Completion</h5>
+                        <div class="chart-container mx-auto" style="max-width: 400px;">
+                            <canvas id="goalChart"></canvas>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-
-        <div class="schedule-item">
-            <img src="https://www.creativefabrica.com/wp-content/uploads/2021/04/29/Bike-Cycling-Sport-Icon-Blue-Graphics-11500030-1-1-580x387.jpg" alt="Cycling" class="schedule-icon rounded">
-            <div class="schedule-text">
-                <div class="day">Thursday</div>
-                <div class="activity">Cycling</div>
-            </div>
-        </div>
-
-        <!-- Add more days as needed -->
     </div>
 
-    <!-- Bottom Navigation (Progress active) -->
-    <div class="bottom-nav text-center">
+    <!-- Bottom Nav (Mobile) -->
+    <div class="bottom-nav d-md-none text-center">
         <div class="row">
             <div class="col"><a href="index.html"><i class="fas fa-home"></i><br>Home</a></div>
             <div class="col"><a href="progress.html" class="active"><i class="fas fa-chart-line"></i><br>Progress</a></div>
-            <div class="col"><a href="dashboard.html"><i class="fas fa-dumbbell"></i><br>Workouts</a></div>
+            <div class="col"><a href="add_activity.html"><i class="fas fa-dumbbell"></i><br>Workouts</a></div>
             <div class="col"><a href="profile.html"><i class="fas fa-user"></i><br>Profile</a></div>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/api.js"></script>
+    <script>
+        // Auth check
+        if (!localStorage.getItem('access_token')) window.location.href = 'index.html';
+
+        // Sample data (replace with apiGet('/api/activities/') later)
+        const sampleData = {
+            weekly: [3, 5, 2, 4, 6, 3, 5],  // Mon to Sun
+            distances: [5, 8, 6, 10, 7, 9, 12],  // Last 7 days
+            goalCompleted: 80,
+            goalTotal: 100
+        };
+
+        // Weekly Bar Chart
+        new Chart(document.getElementById('weeklyChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [{ label: 'Workouts', data: sampleData.weekly, backgroundColor: '#007bff' }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+        });
+
+        // Distance Line Chart
+        new Chart(document.getElementById('distanceChart'), {
+            type: 'line',
+            data: {
+                labels: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'],
+                datasets: [{ label: 'Distance (km)', data: sampleData.distances, borderColor: '#28a745', tension: 0.4 }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+
+        // Goal Doughnut Chart
+        new Chart(document.getElementById('goalChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Completed', 'Remaining'],
+                datasets: [{ data: [sampleData.goalCompleted, sampleData.goalTotal - sampleData.goalCompleted], backgroundColor: ['#28a745', '#e9ecef'] }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+
+        // TODO: Fetch real data and update charts/stats
+    </script>
 </body>
 </html>

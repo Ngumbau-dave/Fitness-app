@@ -1,0 +1,58 @@
+/* Existing styles remain */
+
+/* Mobile optimizations (default/small screens) */
+.login-card {
+    max-width: 420px;  /* Your current – good for mobile */
+    width: 90%;        /* Flexible */
+}
+
+/* Laptop/Desktop optimizations (md breakpoint and up) */
+@media (min-width: 768px) {
+    .login-card {
+        max-width: 600px;  /* Wider for laptops */
+        width: 50%;        /* Centers better on large screens */
+    }
+    .hero-section {
+        padding: 40px 30px;  /* More space */
+    }
+    .form-section {
+        padding: 50px;  /* Larger padding */
+    }
+    .logo {
+        font-size: 48px;  /* Bigger logo */
+    }
+    .tagline {
+        font-size: 32px;
+    }
+    .subtitle {
+        font-size: 20px;
+    }
+    .btn-login {
+        font-size: 20px;  /* Larger button text */
+        padding: 15px;
+    }
+    input.form-control-lg {
+        font-size: 18px;  /* Easier reading */
+    }
+}
+
+/* Extra for very large screens (xl and up) */
+@media (min-width: 1200px) {
+    .login-card {
+        max-width: 700px;
+        width: 40%;
+    }
+}
+
+/* Mobile-specific tweaks (if needed for very small screens) */
+@media (max-width: 575px) {
+    .hero-section {
+        padding: 20px 15px;  /* Compact */
+    }
+    .form-section {
+        padding: 30px;
+    }
+    body {
+        font-size: 14px;  /* Smaller base font if text feels cramped */
+    }
+}
