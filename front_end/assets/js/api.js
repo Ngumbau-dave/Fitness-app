@@ -36,9 +36,7 @@ async function apiPost(endpoint, data) {
     return response.json();
 }
 
-// Specific endpoints
-await apiGet('/api/');
-await apiPost('/api/', newActivity);
+/
 
 
 // Example usage in other files:
