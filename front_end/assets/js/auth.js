@@ -1,5 +1,5 @@
 // API Base (for activities and other endpoints)
-const API_BASE = 'http://127.0.0.1:8000/api/activities/';
+const API_BASE = 'https://fittrack-api-7b9k.onrender.com';
 
 // Login function
 async function loginUser(event) {
@@ -14,7 +14,7 @@ async function loginUser(event) {
     }
 
     try {
-        const response = await fetch('http://127.0.0.1:8000/api/token/', {
+        const response = await fetch('https://fittrack-api-7b9k.onrender.com, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ username, password })
