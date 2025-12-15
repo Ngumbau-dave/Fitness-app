@@ -37,7 +37,9 @@ async function apiPost(endpoint, data) {
 }
 
 // Specific endpoints
-const ACTIVITIES_ENDPOINT = '/api/activities/';
+await apiGet('/api/');
+await apiPost('/api/', newActivity);
+
 
 // Example usage in other files:
 // await apiGet(ACTIVITIES_ENDPOINT)
