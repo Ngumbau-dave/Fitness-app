@@ -36,7 +36,43 @@ async function apiPost(endpoint, data) {
     return response.json();
 }
 
-/
+async function loginUser(event) {
+    event.preventDefault();  // Stop form reload
+
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+    const errorEl = document.getElementById('error');
+
+    if (!username || !password) {
+        errorEl.textContent = 'Please enter username and password';
+        return;
+    }
+
+    errorEl.textContent = '';  // Clear previous errors
+
+    try {
+        // Adjust endpoint if yours is different (common: /api/token/, /api/login/, /api/token/obtain/)
+        const data = await apiPost('/api/token/', { username, password });
+
+        // SimpleJWT returns {refresh, access}
+        localStorage.setItem('access_token', data.access);
+        localStorage.setItem('refresh_token', data.refresh);  // Optional
+
+        // Success! Redirect to dashboard or home
+        window.location.href = 'dashboard.html';  // Change to your protected page
+    } catch (err) {
+        console.error('Login error:', err);
+
+        // Better error handling
+        if (err.message.includes('401')) {
+            errorEl.textContent = 'Invalid username or password';
+        } else if (err.message.includes('404')) {
+            errorEl.textContent = 'Login endpoint not found—check backend URL';
+        } else {
+            errorEl.textContent = 'Login failed: ' + err.message;
+        }
+    }
+}
 
 
 // Example usage in other files:
