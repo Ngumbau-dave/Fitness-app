@@ -34,6 +34,7 @@ class StatsView(APIView):
         total_distance = activities.aggregate(Sum('distance_km'))['distance_km__sum'] or 0
         total_duration = activities.aggregate(Sum('duration_minutes'))['duration_minutes__sum'] or 0
         total_activities = activities.count()
+        total_calories = activities.aggregate(Sum('calories_burned'))['calories_burned__sum'] or 0
 
         # Example goal progress (customize as needed)
         goal_distance = 100  # Hardcoded goal in km - make dynamic if you add a Goal model
@@ -46,6 +47,7 @@ class StatsView(APIView):
             'total_distance': total_distance,
             'total_duration': total_duration,
             'total_activities': total_activities,
+            'total_calories': total_calories,
             'progress_percentage': progress_percentage,
             'activity_types': list(activity_types)  # List for JSON serialization
         }
