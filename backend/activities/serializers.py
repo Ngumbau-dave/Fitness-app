@@ -2,6 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import UserProfile
 
+
 class UserSerializer(serializers.ModelSerializer):
     profile_image = serializers.ImageField(source='userprofile.profile_image', required=False)
 
