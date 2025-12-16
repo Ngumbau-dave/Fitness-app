@@ -7,31 +7,41 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { background: #f8f9fa; min-height: 100vh; display: flex; flex-direction: column; }
-        .header { background: white; padding: 20px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .logo { font-size: 32px; font-weight: bold; color: #007bff; }
+        body { background: linear-gradient(135deg, #f0f4f8, #d9e2ec); min-height: 100vh; }
+        .header { background: white; padding: 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .logo { font-size: 36px; font-weight: bold; color: #007bff; }
         .logo span { color: #28a745; }
-        .main-content { flex: 1; padding-bottom: 70px; }
-        .stats-card { background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); padding: 20px; margin-bottom: 20px; }
-        .chart-container { position: relative; height: 300px; }
+        .main-content { padding: 20px; padding-bottom: 80px; }
+        .page-title { font-size: 32px; font-weight: 600; color: #007bff; margin-bottom: 30px; text-align: center; }
+        .stat-card { background: white; border-radius: 16px; padding: 25px; text-align: center; box-shadow: 0 8px 25px rgba(0,0,0,0.1); transition: all 0.3s; }
+        .stat-card:hover { transform: translateY(-10px); box-shadow: 0 15px 35px rgba(0,0,0,0.2); }
+        .stat-icon { font-size: 50px; margin-bottom: 15px; }
+        .chart-card { background: white; border-radius: 16px; padding: 25px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+        .progress-ring { position: relative; width: 160px; height: 160px; margin: 20px auto; }
+        .progress-ring svg { transform: rotate(-90deg); }
+        .progress-ring circle { fill: none; stroke-width: 14; }
+        .progress-ring .bg { stroke: #e9ecef; }
+        .progress-ring .progress { stroke: #28a745; transition: stroke-dashoffset 1s ease; }
+        .progress-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 32px; font-weight: bold; color: #007bff; }
 
-        /* Bottom Nav & Sidebar (same as profile) */
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); padding: 10px 0; z-index: 1000; }
-        .bottom-nav a { color: #6c757d; text-decoration: none; font-size: 12px; }
+        /* Uniform Sidebar & Bottom Nav */
+        .sidebar { width: 250px; background: white; height: 100vh; position: fixed; left: 0; top: 0; padding-top: 100px; box-shadow: 2px 0 15px rgba(0,0,0,0.1); z-index: 10; }
+        .sidebar a { display: block; padding: 15px 20px; color: #6c757d; font-size: 16px; }
+        .sidebar a.active, .sidebar a:hover { background: #e2f1ff; color: #007bff; border-left: 4px solid #007bff; }
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; box-shadow: 0 -4px 15px rgba(0,0,0,0.1); padding: 10px 0; z-index: 1000; }
         .bottom-nav a.active { color: #007bff; }
-        .bottom-nav i { font-size: 24px; }
 
-        .sidebar { width: 250px; background: white; height: 100vh; position: fixed; left: 0; top: 0; padding-top: 100px; box-shadow: 2px 0 10px rgba(0,0,0,0.1); }
-        .sidebar a { display: block; padding: 15px 20px; color: #6c757d; text-decoration: none; font-size: 16px; }
-        .sidebar a.active { background: #e2f1ff; color: #007bff; border-left: 4px solid #007bff; }
-        .sidebar i { margin-right: 10px; }
-
-        @media (max-width: 767px) { .sidebar { display: none; } .main-content { margin-left: 0; padding: 20px; } .chart-container { height: 250px; } }
-        @media (min-width: 768px) { .bottom-nav { display: none; } .main-content { margin-left: 250px; padding: 40px; } .chart-container { height: 350px; } }
-        @media (min-width: 1200px) { .main-content { padding: 60px; } }
+        @media (max-width: 767px) { 
+            .sidebar { display: none; } 
+            .main-content { padding: 15px; margin-left: 0; } 
+            .page-title { font-size: 28px; }
+        }
+        @media (min-width: 768px) { 
+            .bottom-nav { display: none; } 
+            .main-content { margin-left: 250px; padding: 40px; } 
+        }
     </style>
 </head>
 <body>
@@ -40,13 +50,15 @@
     <div class="sidebar d-none d-md-block">
         <div class="text-center mb-5">
             <img src="https://placehold.co/100x100" alt="Profile" class="rounded-circle mb-3" width="100">
-            <h5>DAVID MUSYOKA</h5>
-            <p>DAVIDNGUMBAU29@GMAIL.COM</p>
+            <h5>David Musyoka</h5>
+            <p>davidngumbau29@gmail.com</p>
         </div>
-        <a href="index.html"><i class="fas fa-home"></i> Home</a>
+        <a href="dashboard.html"><i class="fas fa-home"></i> Dashboard</a>
         <a href="progress.html" class="active"><i class="fas fa-chart-line"></i> Progress</a>
         <a href="add_activity.html"><i class="fas fa-dumbbell"></i> Workouts</a>
+        <a href="training_plan.html"><i class="fas fa-calendar-alt"></i> Plan</a>
         <a href="profile.html"><i class="fas fa-user"></i> Profile</a>
+        <a href="#" onclick="logout(); return false;"><i class="fas fa-sign-out-alt"></i> Logout</a>
     </div>
 
     <!-- Main Content -->
@@ -57,39 +69,70 @@
             <h4>Progress</h4>
         </div>
 
-        <div class="container">
-            <!-- Stats Cards (Dynamic later) -->
-            <div class="row text-center">
-                <div class="col-6 col-md-3 mb-4"><div class="stats-card"><h3 id="total-workouts">15</h3><p>Total Workouts</p></div></div>
-                <div class="col-6 col-md-3 mb-4"><div class="stats-card"><h3 id="total-distance">45 km</h3><p>Total Distance</p></div></div>
-                <div class="col-6 col-md-3 mb-4"><div class="stats-card"><h3 id="avg-duration">35 min</h3><p>Avg Duration</p></div></div>
-                <div class="col-6 col-md-3 mb-4"><div class="stats-card"><h3 id="goal-percent">80%</h3><p>Goal Progress</p></div></div>
+        <div class="container-fluid">
+            <h2 class="page-title">Your Fitness Progress 🔥</h2>
+
+            <!-- Summary Stats -->
+            <div class="row g-4 mb-5">
+                <div class="col-6 col-md-3">
+                    <div class="stat-card">
+                        <i class="fas fa-dumbbell stat-icon text-primary"></i>
+                        <h3>45</h3>
+                        <p>Total Workouts</p>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="stat-card">
+                        <i class="fas fa-road stat-icon text-success"></i>
+                        <h3>120 km</h3>
+                        <p>Total Distance</p>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="stat-card">
+                        <i class="fas fa-clock stat-icon text-info"></i>
+                        <h3>28 hrs</h3>
+                        <p>Time Exercised</p>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="stat-card">
+                        <div class="progress-ring">
+                            <svg width="160" height="160">
+                                <circle class="bg" cx="80" cy="80" r="70"/>
+                                <circle class="progress" cx="80" cy="80" r="70" stroke-dasharray="440" stroke-dashoffset="88"/>
+                            </svg>
+                            <div class="progress-text">80%</div>
+                        </div>
+                        <p>Goal Achieved</p>
+                    </div>
+                </div>
             </div>
 
             <!-- Charts -->
-            <div class="row">
-                <div class="col-12 col-lg-6 mb-4">
-                    <div class="stats-card">
-                        <h5 class="text-center">Weekly Workouts</h5>
-                        <div class="chart-container">
-                            <canvas id="weeklyChart"></canvas>
-                        </div>
+            <div class="row g-4">
+                <div class="col-12 col-lg-6">
+                    <div class="chart-card">
+                        <h5 class="text-center mb-4">Weekly Workouts</h5>
+                        <canvas id="weeklyChart"></canvas>
                     </div>
                 </div>
-                <div class="col-12 col-lg-6 mb-4">
-                    <div class="stats-card">
-                        <h5 class="text-center">Distance Over Time</h5>
-                        <div class="chart-container">
-                            <canvas id="distanceChart"></canvas>
-                        </div>
+                <div class="col-12 col-lg-6">
+                    <div class="chart-card">
+                        <h5 class="text-center mb-4">Distance Trend (km)</h5>
+                        <canvas id="distanceChart"></canvas>
                     </div>
                 </div>
-                <div class="col-12 mb-4">
-                    <div class="stats-card text-center">
-                        <h5>Goal Completion</h5>
-                        <div class="chart-container mx-auto" style="max-width: 400px;">
-                            <canvas id="goalChart"></canvas>
-                        </div>
+                <div class="col-12 col-lg-6">
+                    <div class="chart-card">
+                        <h5 class="text-center mb-4">Calories Burned</h5>
+                        <canvas id="caloriesChart"></canvas>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-6">
+                    <div class="chart-card">
+                        <h5 class="text-center mb-4">Activity Types</h5>
+                        <canvas id="typesChart"></canvas>
                     </div>
                 </div>
             </div>
@@ -99,58 +142,156 @@
     <!-- Bottom Nav (Mobile) -->
     <div class="bottom-nav d-md-none text-center">
         <div class="row">
-            <div class="col"><a href="index.html"><i class="fas fa-home"></i><br>Home</a></div>
+            <div class="col"><a href="dashboard.html"><i class="fas fa-home"></i><br>Dashboard</a></div>
             <div class="col"><a href="progress.html" class="active"><i class="fas fa-chart-line"></i><br>Progress</a></div>
             <div class="col"><a href="add_activity.html"><i class="fas fa-dumbbell"></i><br>Workouts</a></div>
+            <div class="col"><a href="training_plan.html"><i class="fas fa-calendar-alt"></i><br>Plan</a></div>
             <div class="col"><a href="profile.html"><i class="fas fa-user"></i><br>Profile</a></div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="assets/js/api.js"></script>
-    <script>
-        // Auth check
-        if (!localStorage.getItem('access_token')) window.location.href = 'index.html';
+<script src="assets/js/api.js"></script>
+<script src="assets/js/auth.js"></script>
+<script>
+    if (!localStorage.getItem('access_token')) {
+        window.location.href = 'index.html';
+    }
 
-        // Sample data (replace with apiGet('/api/activities/') later)
-        const sampleData = {
-            weekly: [3, 5, 2, 4, 6, 3, 5],  // Mon to Sun
-            distances: [5, 8, 6, 10, 7, 9, 12],  // Last 7 days
-            goalCompleted: 80,
-            goalTotal: 100
-        };
+    let activities = [];  // Global to use across charts
 
-        // Weekly Bar Chart
+    async function loadProgressData() {
+        try {
+            activities = await apiGet('/api/activities/');  // Your endpoint
+            if (!Array.isArray(activities)) activities = [];
+
+            updateStats();
+            renderCharts();
+        } catch (err) {
+            console.error('Failed to load activities:', err);
+            // Optional: show error message on page
+            document.querySelector('.page-title').innerHTML += ' <small class="text-danger">(Failed to load data)</small>';
+        }
+    }
+
+    function updateStats() {
+        const totalWorkouts = activities.length;
+        const totalDistance = activities.reduce((sum, a) => sum + (parseFloat(a.distance) || 0), 0).toFixed(1);
+        const totalDuration = activities.reduce((sum, a) => sum + (parseInt(a.duration) || 0), 0);
+        const totalCalories = activities.reduce((sum, a) => {
+            const mins = parseInt(a.duration) || 0;
+            let rate = 8; // default
+            if (a.activity_type.toLowerCase().includes('run') || a.activity_type.toLowerCase().includes('cycle')) rate = 10;
+            if (a.activity_type.toLowerCase().includes('yoga')) rate = 4;
+            return sum + (mins * rate);
+        }, 0);
+
+        document.getElementById('total-workouts') ? document.getElementById('total-workouts').textContent = totalWorkouts : null;
+        document.getElementById('total-distance') ? document.getElementById('total-distance').textContent = totalDistance + ' km' : null;
+        document.getElementById('avg-duration') ? document.getElementById('avg-duration').textContent = totalDuration + ' min' : null;
+        // Add more IDs if needed
+    }
+
+    function renderCharts() {
+        // Helper: Get last 7 days labels
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const today = new Date();
+        const weekData = Array(7).fill(0);
+
+        // Weekly workouts (last 7 days)
+        activities.forEach(act => {
+            const actDate = new Date(act.date);
+            const diffDays = Math.floor((today - actDate) / (1000 * 60 * 60 * 24));
+            if (diffDays >= 0 && diffDays < 7) {
+                const dayIndex = (today.getDay() - diffDays + 7) % 7;
+                weekData[dayIndex]++;
+            }
+        });
+
         new Chart(document.getElementById('weeklyChart'), {
             type: 'bar',
             data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                datasets: [{ label: 'Workouts', data: sampleData.weekly, backgroundColor: '#007bff' }]
+                labels: days,
+                datasets: [{
+                    label: 'Workouts',
+                    data: weekData,
+                    backgroundColor: '#007bff'
+                }]
             },
-            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+            options: { responsive: true, plugins: { legend: { display: false } } }
         });
 
-        // Distance Line Chart
+        // Distance trend (last 4 weeks - simplified)
+        const weeklyDistance = Array(4).fill(0);
+        activities.forEach(act => {
+            const actDate = new Date(act.date);
+            const weekDiff = Math.floor((today - actDate) / (7 * 24 * 60 * 60 * 1000));
+            if (weekDiff >= 0 && weekDiff < 4) {
+                weeklyDistance[3 - weekDiff] += parseFloat(act.distance) || 0;
+            }
+        });
+
         new Chart(document.getElementById('distanceChart'), {
             type: 'line',
             data: {
-                labels: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'],
-                datasets: [{ label: 'Distance (km)', data: sampleData.distances, borderColor: '#28a745', tension: 0.4 }]
+                labels: ['Week 1', 'Week 2', 'Week 3', 'This Week'],
+                datasets: [{
+                    label: 'Distance (km)',
+                    data: weeklyDistance,
+                    borderColor: '#28a745',
+                    tension: 0.4,
+                    fill: true,
+                    backgroundColor: 'rgba(40, 167, 69, 0.2)'
+                }]
             },
-            options: { responsive: true, maintainAspectRatio: false }
+            options: { responsive: true }
         });
 
-        // Goal Doughnut Chart
-        new Chart(document.getElementById('goalChart'), {
+        // Activity Types Pie
+        const typeCount = {};
+        activities.forEach(act => {
+            const type = act.activity_type || 'Other';
+            typeCount[type] = (typeCount[type] || 0) + 1;
+        });
+
+        new Chart(document.getElementById('typesChart'), {
+            type: 'pie',
+            data: {
+                labels: Object.keys(typeCount),
+                datasets: [{
+                    data: Object.values(typeCount),
+                    backgroundColor: ['#007bff', '#28a745', '#dc3545', '#ffc107', '#6f42c1']
+                }]
+            },
+            options: { responsive: true }
+        });
+
+        // Calories by Type (Doughnut)
+        const caloriesByType = {};
+        activities.forEach(act => {
+            const type = act.activity_type || 'Other';
+            const mins = parseInt(act.duration) || 0;
+            let cal = mins * 8;
+            if (type.toLowerCase().includes('run') || type.toLowerCase().includes('cycle')) cal = mins * 10;
+            if (type.toLowerCase().includes('yoga')) cal = mins * 4;
+            caloriesByType[type] = (caloriesByType[type] || 0) + cal;
+        });
+
+        new Chart(document.getElementById('caloriesChart'), {
             type: 'doughnut',
             data: {
-                labels: ['Completed', 'Remaining'],
-                datasets: [{ data: [sampleData.goalCompleted, sampleData.goalTotal - sampleData.goalCompleted], backgroundColor: ['#28a745', '#e9ecef'] }]
+                labels: Object.keys(caloriesByType),
+                datasets: [{
+                    data: Object.values(caloriesByType),
+                    backgroundColor: ['#007bff', '#28a745', '#dc3545', '#ffc107']
+                }]
             },
-            options: { responsive: true, maintainAspectRatio: false }
+            options: { responsive: true }
         });
+    }
 
-        // TODO: Fetch real data and update charts/stats
-    </script>
+    // Load on page ready
+    loadProgressData();
+</script>
 </body>
 </html>

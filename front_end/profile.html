@@ -37,7 +37,7 @@
         }
         .main-content {
             flex: 1;
-            padding-bottom: 70px; /* Space for bottom nav on mobile */
+            padding-bottom: 70px;
         }
 
         /* Bottom Nav: Mobile only */
@@ -89,17 +89,16 @@
             margin-right: 10px;
         }
 
-        /* Media Queries for Responsiveness */
-        @media (max-width: 767px) { /* Mobile */
-            .sidebar { display: none; } /* Hide sidebar */
+        @media (max-width: 767px) {
+            .sidebar { display: none; }
             .main-content { margin-left: 0; }
             .profile-photo { width: 80px; height: 80px; }
         }
 
-        @media (min-width: 768px) { /* Laptop/Desktop */
-            .bottom-nav { display: none; } /* Hide bottom nav */
+        @media (min-width: 768px) {
+            .bottom-nav { display: none; }
             .main-content {
-                margin-left: 250px; /* Space for sidebar */
+                margin-left: 250px;
                 padding: 40px;
                 padding-bottom: 0;
             }
@@ -109,24 +108,33 @@
             .accordion { max-width: 800px; margin: 0 auto; }
         }
 
-        @media (min-width: 1200px) { /* Extra large screens */
+        @media (min-width: 1200px) {
             .main-content { padding: 60px; }
+        }
+
+        .image-preview {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #007bff;
         }
     </style>
 </head>
 <body>
 
-    <!-- Sidebar Navigation (Visible on Laptop+) -->
+    <!-- Sidebar Navigation (Desktop) -->
     <div class="sidebar d-none d-md-block">
         <div class="text-center mb-5">
-            <img src="https://placehold.co/100x100" alt="Profile" class="profile-photo mb-3">
-            <h5>DAVID MUSYOKA</h5>
-            <p>DAVIDNGUMBAU29@GMAIL.COM</p>
+            <img id="sidebarPhoto" src="https://placehold.co/100x100" alt="Profile" class="profile-photo mb-3">
+            <h5 id="sidebarName">Loading...</h5>
+            <p id="sidebarEmail">Loading...</p>
         </div>
         <a href="index.html"><i class="fas fa-home"></i> Home</a>
         <a href="progress.html"><i class="fas fa-chart-line"></i> Progress</a>
         <a href="add_activity.html"><i class="fas fa-dumbbell"></i> Workouts</a>
         <a href="profile.html" class="active"><i class="fas fa-user"></i> Profile</a>
+        <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
     </div>
 
     <!-- Main Content -->
@@ -137,17 +145,46 @@
             <h4>Profile</h4>
         </div>
 
-        <!-- Profile Header (Mobile only - on desktop it's in sidebar) -->
-        <div class="profile-header text-center d-md-none">
-            <img src="https://placehold.co/100x100" alt="Profile Photo" class="profile-photo">
-            <h5>DAVID MUSYOKA</h5>
-            <p>DAVIDNGUMBAU29@GMAIL.COM</p>
+        <!-- Mobile Profile Header -->
+        <div class="profile-header text-center d-md-none mb-4">
+            <img id="mobilePhoto" src="https://placehold.co/100x100" alt="Profile Photo" class="profile-photo">
+            <h5 id="mobileName">Loading...</h5>
+            <p id="mobileEmail">Loading...</p>
         </div>
 
-        <!-- Accordion Content -->
-        <div class="container mt-4">
-            <div class="accordion" id="profileAccordion">
-                <!-- Your accordion items remain the same -->
+        <!-- Update Profile Form -->
+        <div class="container">
+            <div class="card p-4 shadow">
+                <h4 class="text-center mb-4">Update Profile</h4>
+                <form id="profileForm">
+                    <div class="text-center mb-4">
+                        <img id="previewImage" src="https://placehold.co/120x120" alt="Profile Preview" class="image-preview">
+                        <div class="mt-3">
+                            <input type="file" id="profile_image" accept="image/*" class="form-control">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>First Name</label>
+                        <input type="text" id="first_name" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label>Last Name</label>
+                        <input type="text" id="last_name" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label>Email</label>
+                        <input type="email" id="email" class="form-control">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">Update Profile</button>
+                    <p id="updateMessage" class="text-center mt-3"></p>
+                </form>
+            </div>
+
+            <!-- Accordion (existing) -->
+            <div class="accordion mt-5" id="profileAccordion">
+                <!-- Keep your existing accordion items -->
                 <div class="accordion-item">
                     <h2 class="accordion-header">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#personal">
@@ -156,47 +193,19 @@
                     </h2>
                     <div id="personal" class="accordion-collapse collapse">
                         <div class="accordion-body">
-                            Name: David Musyoka<br>
-                            Email: davidngumbau29@gmail.com<br>
+                            Name: <span id="detailName">Loading...</span><br>
+                            Email: <span id="detailEmail">Loading...</span><br>
                             Joined: December 2025
                         </div>
                     </div>
                 </div>
 
-                <div class="accordion-item">
-                    <h2 class="accordion-header">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#stats">
-                            <i class="fas fa-chart-bar me-2 text-primary"></i> Statistics
-                        </button>
-                    </h2>
-                    <div id="stats" class="accordion-collapse collapse">
-                        <div class="accordion-body">
-                            Total Workouts: 15<br>
-                            Total Distance: 45 km<br>
-                            Average Duration: 35 min
-                        </div>
-                    </div>
-                </div>
-
-                <div class="accordion-item">
-                    <h2 class="accordion-header">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#settings">
-                            <i class="fas fa-cog me-2 text-primary"></i> Settings
-                        </button>
-                    </h2>
-                    <div id="settings" class="accordion-collapse collapse">
-                        <div class="accordion-body">
-                            Change Password<br>
-                            Unit Preferences (km/miles)<br>
-                            Notification Settings
-                        </div>
-                    </div>
-                </div>
+                <!-- Other accordion items... -->
             </div>
         </div>
     </div>
 
-    <!-- Bottom Nav (Visible on Mobile only) -->
+    <!-- Bottom Nav (Mobile) -->
     <div class="bottom-nav d-md-none text-center">
         <div class="row">
             <div class="col"><a href="index.html"><i class="fas fa-home"></i><br>Home</a></div>
@@ -209,26 +218,79 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/api.js"></script>
     <script>
+        // Load profile data and display
         async function loadProfile() {
             try {
                 const user = await apiGet('/profile/');
-                // Update name/email in mobile header
-                const mobileName = document.querySelector('.d-md-none h5');
-                const mobileEmail = document.querySelector('.d-md-none p');
-                if (mobileName) mobileName.textContent = `${user.first_name} ${user.last_name}`.trim() || user.username;
-                if (mobileEmail) mobileEmail.textContent = user.email;
+                const imageUrl = user.profile_image || 'https://placehold.co/120x120';
 
-                // Update sidebar (desktop)
-                const sidebarName = document.querySelector('.sidebar h5');
-                const sidebarEmail = document.querySelector('.sidebar p');
-                if (sidebarName) sidebarName.textContent = `${user.first_name} ${user.last_name}`.trim() || user.username;
-                if (sidebarEmail) sidebarEmail.textContent = user.email;
+                // Update all images
+                document.getElementById('sidebarPhoto').src = imageUrl;
+                document.getElementById('mobilePhoto').src = imageUrl;
+                document.getElementById('previewImage').src = imageUrl;
 
-                // Fill accordion if you add dynamic data later
+                // Update names/emails
+                const fullName = `${user.first_name} ${user.last_name}`.trim() || user.username;
+                document.getElementById('sidebarName').textContent = fullName;
+                document.getElementById('mobileName').textContent = fullName;
+                document.getElementById('detailName').textContent = fullName;
+
+                document.getElementById('sidebarEmail').textContent = user.email;
+                document.getElementById('mobileEmail').textContent = user.email;
+                document.getElementById('detailEmail').textContent = user.email;
+
+                // Pre-fill form
+                document.getElementById('first_name').value = user.first_name || '';
+                document.getElementById('last_name').value = user.last_name || '';
+                document.getElementById('email').value = user.email || '';
             } catch (err) {
-                window.location.href = 'index.html';  // Redirect to login
+                window.location.href = 'index.html';
             }
         }
+
+        // Update profile with image
+        document.getElementById('profileForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('first_name', document.getElementById('first_name').value);
+            formData.append('last_name', document.getElementById('last_name').value);
+            formData.append('email', document.getElementById('email').value);
+
+            const imageFile = document.getElementById('profile_image').files[0];
+            if (imageFile) {
+                formData.append('userprofile.profile_image', imageFile);
+            }
+
+            try {
+                const response = await fetch(API_BASE + 'profile/', {
+                    method: 'PUT',
+                    headers: {
+                        "Authorization": `Bearer ${getToken()}`
+                    },
+                    body: formData
+                });
+
+                if (response.ok) {
+                    document.getElementById('updateMessage').textContent = 'Profile updated successfully!';
+                    document.getElementById('updateMessage').style.color = 'green';
+                    loadProfile();  // Reload fresh data
+                } else {
+                    throw new Error('Update failed');
+                }
+            } catch (err) {
+                document.getElementById('updateMessage').textContent = 'Update failed. Try again.';
+                document.getElementById('updateMessage').style.color = 'red';
+            }
+        });
+
+        // Preview selected image
+        document.getElementById('profile_image').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('previewImage').src = URL.createObjectURL(file);
+            }
+        });
+
         loadProfile();
     </script>
 </body>

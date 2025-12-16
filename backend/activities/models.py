@@ -1,25 +1,46 @@
 from django.db import models
-from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User
 
-User = get_user_model()
+ACTIVITY_CHOICES = [
+    ('RUN', 'Running'),
+    ('CYC', 'Cycling'),
+    ('SWM', 'Swimming'),
+    ('GYM', 'Gym'),
+    ('YOG', 'Yoga'),
+    ('OTH', 'Other'),
+]
+
+# MET values for calorie calculation
+MET_VALUES = {
+    'RUN': 10.0,
+    'CYC': 8.0,
+    'SWM': 10.0,
+    'GYM': 6.0,
+    'YOG': 3.0,
+    'OTH': 5.0,
+}
 
 class Activity(models.Model):
-    ACTIVITY_CHOICES = [
-        ('RUN', 'Running'),
-        ('CYC', 'Cycling'),
-        ('SWM', 'Swimming'),
-        ('GYM', 'Gym'),
-        ('YOG', 'Yoga'),
-    
-    ]
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='activities')
-    activity_type = models.CharField(max_length=10, choices=ACTIVITY_CHOICES)
+    activity_type = models.CharField(max_length=10, choices=ACTIVITY_CHOICES, default='OTH')
     duration = models.PositiveIntegerField(help_text='Duration in minutes')
-    calories_burned = models.PositiveIntegerField(null=True,blank=True)
-    date=models.DateField()
-
+    distance_km = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+    calories_burned = models.PositiveIntegerField(null=True, blank=True, editable=False)  # Auto-calculated
+    date = models.DateField()
+    notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    def __str__(self):
-        return f"{self.user.username} - {self.get_activity_type} on {self.date}"
 
-# Create your models here.
+    def save(self, *args, **kwargs):
+        if self.duration:
+            met = MET_VALUES.get(self.activity_type, 5.0)
+            weight_kg = 70  # Default weight — customize later
+            hours = self.duration / 60
+            self.calories_burned = int(met * weight_kg * hours)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.activity_type} on {self.date}"
+
+    class Meta:
+        verbose_name_plural = "Activities"
+        ordering = ['-date']

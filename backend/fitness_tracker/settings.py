@@ -110,3 +110,5 @@ CORS_ALLOWED_ORIGINS = [
 
 # Optional
 LOGIN_REDIRECT_URL = '/api/activities/'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'

@@ -9,139 +9,196 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body {
-            background: #f8f9fa;
-        }
-        .header {
-            background: white;
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .logo {
-            font-size: 32px;
-            font-weight: bold;
-            color: #007bff;
-        }
-        .logo span {
-            color: #28a745;
-        }
-        .stat-card {
-            margin: 20px;
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            padding: 20px;
-            text-align: center;
-        }
-        .total-exercise {
-            font-size: 48px;
-            color: #007bff;
-        }
-        .goal-bar {
-            background: #e2f1ff;
-            border-radius: 12px;
-            height: 20px;
-            position: relative;
-        }
-        .goal-progress {
-            background: #ff8c00;
-            height: 100%;
-            border-radius: 12px;
-        }
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            background: white;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-            padding: 10px 0;
-        }
-        .bottom-nav a {
-            color: #6c757d;
-            text-decoration: none;
-            font-size: 12px;
-        }
-        .bottom-nav a.active {
-            color: #007bff;
-        }
-        .bottom-nav i {
-            font-size: 24px;
-        }
+        body { background: linear-gradient(135deg, #f0f4f8, #d9e2ec); min-height: 100vh; }
+        .header { background: white; padding: 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .logo { font-size: 36px; font-weight: bold; color: #007bff; }
+        .logo span { color: #28a745; }
+        .main-content { padding: 20px; padding-bottom: 80px; }
+        .greeting { font-size: 28px; font-weight: 600; color: #007bff; margin-bottom: 30px; text-align: center; }
+        .stat-card { background: white; border-radius: 16px; padding: 25px; text-align: center; box-shadow: 0 8px 25px rgba(0,0,0,0.1); transition: all 0.3s; }
+        .stat-card:hover { transform: translateY(-10px); box-shadow: 0 15px 35px rgba(0,0,0,0.2); }
+        .stat-icon { font-size: 50px; margin-bottom: 15px; }
+        .progress-ring { position: relative; width: 140px; height: 140px; margin: 20px auto; }
+        .progress-ring svg { transform: rotate(-90deg); }
+        .progress-ring circle { fill: none; stroke-width: 12; }
+        .progress-ring .bg { stroke: #e9ecef; }
+        .progress-ring .progress { stroke: #28a745; transition: stroke-dashoffset 1s ease; }
+        .progress-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 28px; font-weight: bold; color: #007bff; }
+        .recent-card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+        .quick-action { background: #007bff; color: white; border-radius: 50px; padding: 15px 30px; font-size: 18px; transition: 0.3s; }
+        .quick-action:hover { background: #0056b3; transform: scale(1.05); }
+
+        /* Mobile vs Desktop */
+        @media (max-width: 767px) { .main-content { padding: 15px; } .greeting { font-size: 24px; } }
+        @media (min-width: 768px) { .main-content { padding: 40px; padding-bottom: 0; margin-left: 250px; } }
+
+        /* Sidebar & Bottom Nav (same as before) */
+        .sidebar { width: 250px; background: white; height: 100vh; position: fixed; left: 0; top: 0; padding-top: 100px; box-shadow: 2px 0 15px rgba(0,0,0,0.1); }
+        .sidebar a { display: block; padding: 15px 20px; color: #6c757d; font-size: 16px; }
+        .sidebar a.active, .sidebar a:hover { background: #e2f1ff; color: #007bff; border-left: 4px solid #007bff; }
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; box-shadow: 0 -4px 15px rgba(0,0,0,0.1); padding: 10px 0; }
+        .bottom-nav a.active { color: #007bff; }
+        @media (max-width: 767px) { .sidebar { display: none; } }
+        @media (min-width: 768px) { .bottom-nav { display: none; } }
     </style>
 </head>
 <body>
 
-    <!-- Header -->
-    <div class="header">
-        <div class="logo">Fit<span>✔</span>Track</div>
-        <h4>Dashboard</h4>
-    </div>
-
-    <!-- Stats Cards -->
-    <div class="stat-card">
-        <h5>Total Exercise</h5>
-        <div class="total-exercise" id="totalDistance">0</div>
-        <span class="text-success">↑ 10%</span>
-    </div>
-
-    <div class="stat-card">
-        <h5>Progress</h5>
-        <canvas id="progressPie" height="200"></canvas>
-    </div>
-
-    <div class="stat-card">
-        <h5>Goal</h5>
-        <div class="goal-bar">
-            <div class="goal-progress" style="width: 65%;"></div>
+    <!-- Sidebar (Desktop) -->
+    <div class="sidebar d-none d-md-block">
+        <div class="text-center mb-5">
+            <img src="https://placehold.co/100x100" alt="Profile" class="rounded-circle mb-3" width="100">
+            <h5>David Musyoka</h5>
+            <p>davidngumbau29@gmail.com</p>
         </div>
-        <p id="goalText">0 km / 8 km</p>
+        <a href="dashboard.html" class="active"><i class="fas fa-home"></i> Dashboard</a>
+        <a href="progress.html"><i class="fas fa-chart-line"></i> Progress</a>
+        <a href="add_activity.html"><i class="fas fa-dumbbell"></i> Workouts</a>
+        <a href="training_plan.html"><i class="fas fa-calendar-alt"></i> Plan</a>
+        <a href="profile.html"><i class="fas fa-user"></i> Profile</a>
+        <a href="#" onclick="logout(); return false;"><i class="fas fa-sign-out-alt"></i> Logout</a>
     </div>
 
-    <!-- Bottom Nav -->
-    <div class="bottom-nav text-center">
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Mobile Header -->
+        <div class="header d-md-none">
+            <div class="logo">Fit<span>✔</span>Track</div>
+            <h4>Dashboard</h4>
+        </div>
+
+        <div class="container-fluid">
+            <div class="greeting">Welcome back, David! 💪</div>
+
+            <!-- Stats Cards -->
+            <div class="row g-4 mb-5">
+                <div class="col-6 col-md-3">
+                    <div class="stat-card">
+                        <i class="fas fa-dumbbell stat-icon text-primary"></i>
+                        <h3 id="workouts">0</h3>
+                        <p>Total Workouts</p>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="stat-card">
+                        <i class="fas fa-road stat-icon text-success"></i>
+                        <h3 id="distance">0 km</h3>
+                        <p>Distance Covered</p>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="stat-card">
+                        <i class="fas fa-fire stat-icon text-danger"></i>
+                        <h3 id="calories">0</h3>
+                        <p>Calories Burned</p>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="stat-card">
+                        <div class="progress-ring">
+                            <svg width="140" height="140">
+                                <circle class="bg" cx="70" cy="70" r="60"/>
+                                <circle class="progress" cx="70" cy="70" r="60" stroke-dasharray="377" stroke-dashoffset="75"/>
+                            </svg>
+                            <div class="progress-text">80%</div>
+                        </div>
+                        <p>Weekly Goal</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Action + Recent -->
+            <div class="row g-4">
+                <div class="col-12 col-lg-6">
+                    <a href="add_activity.html" class="btn quick-action d-block text-center text-decoration-none">
+                        <i class="fas fa-plus-circle me-2"></i> Log New Workout
+                    </a>
+                    <div class="recent-card mt-4">
+                        <h5>Recent Activities</h5>
+                        <ul class="list-group list-group-flush" id="recent-activities">
+                            <li class="list-group-item">Running - 5km - 35 min</li>
+                            <li class="list-group-item">Weightlifting - 45 min</li>
+                            <li class="list-group-item">Yoga - 30 min</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-6">
+                    <div class="recent-card">
+                        <h5>Weekly Activity</h5>
+                        <canvas id="weeklyChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Nav (Mobile) -->
+    <div class="bottom-nav d-md-none text-center">
         <div class="row">
-            <div class="col"><a href="index.html" class="active"><i class="fas fa-home"></i><br>Home</a></div>
+            <div class="col"><a href="dashboard.html" class="active"><i class="fas fa-home"></i><br>Dashboard</a></div>
             <div class="col"><a href="progress.html"><i class="fas fa-chart-line"></i><br>Progress</a></div>
             <div class="col"><a href="add_activity.html"><i class="fas fa-dumbbell"></i><br>Workouts</a></div>
+            <div class="col"><a href="training_plan.html"><i class="fas fa-calendar-alt"></i><br>Plan</a></div>
             <div class="col"><a href="profile.html"><i class="fas fa-user"></i><br>Profile</a></div>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/api.js"></script>
+    <script src="assets/js/auth.js"></script> <!-- for logout() -->
     <script>
-        async function loadDashboard() {
-            const activities = await apiGet('/api/activities/');
-            let totalDistance = 0;
-            let goal = 8;  // Hardcoded goal - make dynamic later
-            let progress = 0;
-            activities.forEach(act => {
-                totalDistance += act.distance_km || 0;
-            });
-            progress = (totalDistance / goal * 100).toFixed(0);
-            document.getElementById('totalDistance').textContent = totalDistance.toLocaleString();
-            document.getElementById('goalText').textContent = `${totalDistance} km / ${goal} km`;
-            document.querySelector('.goal-progress').style.width = `${progress}%`;
+        if (!localStorage.getItem('access_token')) window.location.href = 'index.html';
 
-            // Pie Chart (example segments - calculate from activities)
-            new Chart(document.getElementById('progressPie'), {
-                type: 'doughnut',
-                data: {
-                    labels: ['Running', 'Cycling', 'Other'],
-                    datasets: [{
-                        data: [40, 35, 25],  // Replace with real percentages from activities
-                        backgroundColor: ['#ff8c00', '#007bff', '#28a745']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: { position: 'bottom' }
-                    }
-                }
-            });
-        }
-        loadDashboard();
+        // Weekly mini chart
+        new Chart(document.getElementById('weeklyChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [{
+                    label: 'Workouts',
+                    data: [3, 5, 2, 4, 6, 3, 5],
+                    backgroundColor: '#007bff'
+                }]
+            },
+            options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+        });
     </script>
+    <div class="stat-card">
+    <h5>Total Calories Burned</h5>
+    <div class="total-exercise" id="totalCalories">0</div>
+</div>
+
+<canvas id="caloriesPie" height="200"></canvas>
+
+<script>
+    async function loadDashboard() {
+        const activities = await apiGet('/activities/');
+        let totalCalories = 0;
+        activities.forEach(act => {
+            totalCalories += act.calories_burned || 0;
+        });
+        document.getElementById('totalCalories').textContent = totalCalories;
+
+        // Pie chart by type
+        const typeCalories = {};
+        activities.forEach(act => {
+            const type = act.activity_type;
+            typeCalories[type] = (typeCalories[type] || 0) + (act.calories_burned || 0);
+        });
+
+        new Chart(document.getElementById('caloriesPie'), {
+            type: 'pie',
+            data: {
+                labels: Object.keys(typeCalories),
+                datasets: [{
+                    data: Object.values(typeCalories),
+                    backgroundColor: ['#ff8c00', '#007bff', '#28a745', '#dc3545', '#ffc107']
+                }]
+            },
+            options: { responsive: true }
+        });
+    }
+    loadDashboard();
+</script>
 </body>
 </html>

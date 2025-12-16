@@ -9,18 +9,21 @@ from .models import Activity
 from .serializers import ActivitySerializer
 
 class ActivityListCreateView(generics.ListCreateAPIView):
-    queryset = Activity.objects.all().order_by('-date')  # Show ALL activities to everyone
     serializer_class = ActivitySerializer
-    permission_classes = [AllowAny]  # Anyone can list/create
+    permission_classes = [IsAuthenticated]  # Require login
+
+    def get_queryset(self):
+        return Activity.objects.filter(user=self.request.user).order_by('-date')
 
     def perform_create(self, serializer):
-        serializer.save()  # No user assigned — fine for demo
-
+        serializer.save(user=self.request.user)  # Assign to logged-in user
 
 class ActivityRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Activity.objects.all()  # Allow access to any activity
     serializer_class = ActivitySerializer
-    permission_classes = [AllowAny]  # Anyone can retrieve/update/delete
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Activity.objects.filter(user=self.request.user)# Anyone can retrieve/update/delete
 
 
 class StatsView(APIView):
@@ -108,3 +111,9 @@ class RegisterView(generics.CreateAPIView):
             'access': str(refresh.access_token),
             'user': UserSerializer(user).data
         }, status=status.HTTP_201_CREATED)
+    total_calories = activities.aggregate(Sum('calories_burned'))['calories_burned__sum'] or 0
+
+stats = {
+    # ... existing
+    'total_calories': total_calories,
+}
