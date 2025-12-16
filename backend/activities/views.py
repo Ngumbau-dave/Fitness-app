@@ -114,6 +114,5 @@ class RegisterView(generics.CreateAPIView):
     total_calories = activities.aggregate(Sum('calories_burned'))['calories_burned__sum'] or 0
 
 stats = {
-    # ... existing
     'total_calories': total_calories,
 }
