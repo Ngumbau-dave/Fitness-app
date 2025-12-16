@@ -2,11 +2,13 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import Activity, UserProfile  # Add Activity if missing
 
+# Activity Serializer (required for your views)
 class ActivitySerializer(serializers.ModelSerializer):
     class Meta:
         model = Activity
-        fields = '__all__'  # Or specific fields: ['id', 'date', 'type', 'duration_minutes', 'distance_km', 'notes']
+        fields = '__all__'  # Or list specific fields if you prefer
 
+# Your existing User Serializer (unchanged)
 class UserSerializer(serializers.ModelSerializer):
     profile_image = serializers.ImageField(source='userprofile.profile_image', required=False)
 
