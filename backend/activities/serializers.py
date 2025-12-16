@@ -1,7 +1,11 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import UserProfile
+from .models import Activity, UserProfile  # Add Activity if missing
 
+class ActivitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Activity
+        fields = '__all__'  # Or specific fields: ['id', 'date', 'type', 'duration_minutes', 'distance_km', 'notes']
 
 class UserSerializer(serializers.ModelSerializer):
     profile_image = serializers.ImageField(source='userprofile.profile_image', required=False)
