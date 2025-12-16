@@ -113,8 +113,3 @@ class RegisterView(generics.CreateAPIView):
             'access': str(refresh.access_token),
             'user': UserSerializer(user).data
         }, status=status.HTTP_201_CREATED)
-    total_calories = activities.aggregate(Sum('calories_burned'))['calories_burned__sum'] or 0
-
-stats = {
-    'total_calories': total_calories,
-}
