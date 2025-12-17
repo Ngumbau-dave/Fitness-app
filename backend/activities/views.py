@@ -7,6 +7,7 @@ from django.db.models import Sum, Count
 from django.contrib.auth.models import User
 from .models import Activity
 from .serializers import ActivitySerializer
+from rest_framework import serializers
 
 class ActivityListCreateView(generics.ListCreateAPIView):
     serializer_class = ActivitySerializer
