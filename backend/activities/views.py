@@ -56,6 +56,7 @@ class StatsView(APIView):
 
 # NEW: Profile View + Serializer
 class UserSerializer(ModelSerializer):
+    avatar = serializers.ImageField(required=False, allow_null=True)
     class Meta:
         model = User
         fields = ['id', 'username', 'email', 'first_name', 'last_name']
@@ -113,3 +114,4 @@ class RegisterView(generics.CreateAPIView):
             'access': str(refresh.access_token),
             'user': UserSerializer(user).data
         }, status=status.HTTP_201_CREATED)
+    
