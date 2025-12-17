@@ -250,39 +250,69 @@
 
         // Update profile with image
         document.getElementById('profileForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = new FormData();
-            formData.append('first_name', document.getElementById('first_name').value);
-            formData.append('last_name', document.getElementById('last_name').value);
-            formData.append('email', document.getElementById('email').value);
+    e.preventDefault();
 
-            const imageFile = document.getElementById('profile_image').files[0];
-            if (imageFile) {
-                formData.append('userprofile.profile_image', imageFile);
-            }
+    const formData = new FormData();
+    formData.append('first_name', document.getElementById('first_name').value.trim());
+    formData.append('last_name', document.getElementById('last_name').value.trim());
+    formData.append('email', document.getElementById('email').value.trim());
 
-            try {
-                const response = await fetch(API_BASE + 'profile/', {
-                    method: 'PUT',
-                    headers: {
-                        "Authorization": `Bearer ${getToken()}`
-                    },
-                    body: formData
-                });
+    const imageFile = document.getElementById('profile_image').files[0];
+    if (imageFile) {
+        formData.append('avatar', imageFile);  // Correct field name
+    }
 
-                if (response.ok) {
-                    document.getElementById('updateMessage').textContent = 'Profile updated successfully!';
-                    document.getElementById('updateMessage').style.color = 'green';
-                    loadProfile();  // Reload fresh data
-                } else {
-                    throw new Error('Update failed');
-                }
-            } catch (err) {
-                document.getElementById('updateMessage').textContent = 'Update failed. Try again.';
-                document.getElementById('updateMessage').style.color = 'red';
-            }
+    const messageEl = document.getElementById('updateMessage');
+    messageEl.textContent = '';
+    messageEl.style.color = '';
+
+    try {
+        const token = localStorage.getItem('access_token');
+        if (!token) throw new Error('No authentication token');
+
+        const response = await fetch('https://fittrack-api-7b9k.onrender.com/api/profile/', {
+            method: 'PATCH',  // Use PATCH, not PUT (more standard for partial updates)
+            headers: {
+                'Authorization': `Bearer ${token}`
+                // Do NOT set Content-Type — browser sets it automatically with boundary for FormData
+            },
+            body: formData
         });
 
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.detail || 'Update failed');
+        }
+
+        const updatedUser = await response.json();
+
+        messageEl.textContent = 'Profile updated successfully!';
+        messageEl.style.color = 'green';
+
+        // Update preview and sidebar/mobile photos
+        if (updatedUser.avatar) {
+            const fullUrl = updatedUser.avatar;
+            document.getElementById('previewImage').src = fullUrl;
+            document.getElementById('sidebarPhoto').src = fullUrl;
+            document.getElementById('mobilePhoto').src = fullUrl;
+        }
+
+        // Update name/email in display
+        const fullName = `${updatedUser.first_name} ${updatedUser.last_name}`.trim() || updatedUser.username;
+        document.getElementById('sidebarName').textContent = fullName;
+        document.getElementById('mobileName').textContent = fullName;
+        document.getElementById('detailName').textContent = fullName;
+
+        document.getElementById('sidebarEmail').textContent = updatedUser.email;
+        document.getElementById('mobileEmail').textContent = updatedUser.email;
+        document.getElementById('detailEmail').textContent = updatedUser.email;
+
+    } catch (err) {
+        console.error('Profile update error:', err);
+        messageEl.textContent = err.message || 'Failed to update profile';
+        messageEl.style.color = 'red';
+    }
+});
         // Preview selected image
         document.getElementById('profile_image').addEventListener('change', (e) => {
             const file = e.target.files[0];
