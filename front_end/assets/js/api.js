@@ -75,6 +75,7 @@ async function loginUser(event) {
 }
 
 
+
 // Example usage in other files:
 // await apiGet(ACTIVITIES_ENDPOINT)
 // await apiPost(ACTIVITIES_ENDPOINT, newActivityData)

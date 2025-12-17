@@ -287,9 +287,10 @@
             document.getElementById('last_name').value = user.last_name || '';
             document.getElementById('email').value = user.email || '';
         } catch (err) {
-            console.error('Failed to load profile:', err);
-            window.location.href = 'index.html';
-        }
+    console.error('Failed to load profile:', err);
+    // Do NOT redirect — show error instead
+    document.body.innerHTML = '<div style="text-align:center;margin-top:50px;"><h3>Failed to load profile</h3><p>Check console for details or try logging in again.</p></div>';
+}
     }
 
     // Clickable preview
