@@ -172,7 +172,7 @@
 
 <script>
     async function loadDashboard() {
-        const activities = await apiGet('/activities/');
+       const activities = await apiGet('/api/activities/');  // Add '/api/'
         let totalCalories = 0;
         activities.forEach(act => {
             totalCalories += act.calories_burned || 0;

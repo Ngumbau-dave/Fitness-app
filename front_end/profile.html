@@ -259,7 +259,7 @@
 
         async function loadProfile() {
             try {
-                const user = await apiGet('/profile/');
+               const user = await apiGet('/api/profile/');
                 const imageUrl = user.avatar || 'https://placehold.co/120x120';
 
                 // Update all photos
