@@ -79,28 +79,26 @@
 
 <script src="assets/js/api.js"></script>
 <script>
-    document.getElementById('signupForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const data = {
-            username: document.getElementById('username').value,
-            email: document.getElementById('email').value,
-            first_name: document.getElementById('first_name').value,
-            last_name: document.getElementById('last_name').value,
-            password: document.getElementById('password').value,
-            password2: document.getElementById('password2').value
-        };
-
-        try {
-            const response = await apiPost('/activities/register', data);
-            // Save tokens
-            localStorage.setItem('access', response.access);
-            localStorage.setItem('refresh', response.refresh);
-            alert('Account created successfully!');
-            window.location.href = 'dashboard.html';  // Redirect to main app
-        } catch (err) {
-            document.getElementById('error').textContent = 'Registration failed. Check fields.';
-        }
-    });
+   document.getElementById('signupForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const data = {
+        username: document.getElementById('username').value,
+        email: document.getElementById('email').value,
+        first_name: document.getElementById('first_name').value,
+        last_name: document.getElementById('last_name').value,
+        password: document.getElementById('password').value,
+        password2: document.getElementById('password2').value
+    };
+    try {
+        const response = await apiPost('/api/register/', data);
+        localStorage.setItem('access_token', response.access);
+        localStorage.setItem('refresh_token', response.refresh);
+        alert('Account created!');
+        window.location.href = 'dashboard.html';
+    } catch (err) {
+        document.getElementById('error').textContent = 'Failed: ' + err.message;
+    }
+});
 </script>
 </body>
 </html>

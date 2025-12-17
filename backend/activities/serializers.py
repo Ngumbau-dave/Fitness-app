@@ -10,18 +10,21 @@ class ActivitySerializer(serializers.ModelSerializer):
 
 # Your existing User Serializer (unchanged)
 class UserSerializer(serializers.ModelSerializer):
-    profile_image = serializers.ImageField(source='userprofile.profile_image', required=False)
+    avatar = serializers.ImageField(source='profile.avatar', required=False)
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'profile_image']
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'avatar']
         read_only_fields = ['id', 'username']
 
     def update(self, instance, validated_data):
-        profile_data = validated_data.pop('userprofile', {})
-        profile, _ = UserProfile.objects.get_or_create(user=instance)
-        if 'profile_image' in profile_data:
-            profile.profile_image = profile_data['profile_image']
+        profile_data = validated_data.pop('profile', {})
+        if hasattr(instance, 'profile'):
+            profile = instance.profile
+        else:
+            profile = Profile.objects.create(user=instance)
+        if 'avatar' in profile_data:
+            profile.avatar = profile_data['avatar']
             profile.save()
         instance.first_name = validated_data.get('first_name', instance.first_name)
         instance.last_name = validated_data.get('last_name', instance.last_name)

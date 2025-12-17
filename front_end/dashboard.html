@@ -149,56 +149,97 @@
     <script>
         if (!localStorage.getItem('access_token')) window.location.href = 'index.html';
 
-        // Weekly mini chart
-        new Chart(document.getElementById('weeklyChart'), {
-            type: 'bar',
-            data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                datasets: [{
-                    label: 'Workouts',
-                    data: [3, 5, 2, 4, 6, 3, 5],
-                    backgroundColor: '#007bff'
-                }]
-            },
-            options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
-        });
+        async function loadDashboard() {
+            const activities = await apiGet('/api/activities/');  // Add '/api/'
+            const stats = await apiGet('/api/stats/');
+
+            // Update stats cards
+            document.getElementById('workouts').textContent = stats.total_activities || 0;
+            document.getElementById('distance').textContent = `${stats.total_distance || 0} km`;
+            document.getElementById('calories').textContent = stats.total_calories || 0;
+
+            // Dynamic Progress Ring
+            const progressPercent = stats.progress_percentage || 0;
+            const progressCircle = document.querySelector('.progress .progress');
+            const circumference = 2 * Math.PI * 60; // r=60
+            progressCircle.style.strokeDasharray = circumference;
+            progressCircle.style.strokeDashoffset = circumference * (1 - progressPercent / 100);
+            document.querySelector('.progress-text').textContent = `${progressPercent}%`;
+
+            // Dynamic Weekly Bar Chart
+            const weeklyData = [0, 0, 0, 0, 0, 0, 0]; // Mon-Sun
+            activities.forEach(act => {
+                const day = new Date(act.date).getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+                const index = (day + 6) % 7; // Shift to Mon=0, Tue=1, ..., Sun=6
+                weeklyData[index]++;
+            });
+            new Chart(document.getElementById('weeklyChart'), {
+                type: 'bar',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Workouts',
+                        data: weeklyData,
+                        backgroundColor: '#007bff'
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+            });
+
+            // Total Calories
+            let totalCalories = 0;
+            activities.forEach(act => {
+                totalCalories += act.calories_burned || 0;
+            });
+            document.getElementById('totalCalories').textContent = totalCalories;
+
+            // Pie chart by type
+            const typeCalories = {};
+            activities.forEach(act => {
+                const type = act.activity_type;
+                typeCalories[type] = (typeCalories[type] || 0) + (act.calories_burned || 0);
+            });
+
+            new Chart(document.getElementById('caloriesPie'), {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(typeCalories),
+                    datasets: [{
+                        data: Object.values(typeCalories),
+                        backgroundColor: ['#ff8c00', '#007bff', '#28a745', '#dc3545', '#ffc107']
+                    }]
+                },
+                options: { responsive: true }
+            });
+
+            // Update recent activities (dynamic example; adjust if needed)
+            const recentList = document.getElementById('recent-activities');
+            recentList.innerHTML = '';
+            activities.slice(-3).reverse().forEach(act => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item';
+                li.textContent = `${act.activity_type} - ${act.distance_km || 0}km - ${act.duration} min`;
+                recentList.appendChild(li);
+            });
+        }
+        loadDashboard();
     </script>
-    <div class="stat-card">
-    <h5>Total Calories Burned</h5>
-    <div class="total-exercise" id="totalCalories">0</div>
-</div>
 
-<canvas id="caloriesPie" height="200"></canvas>
+    <!-- Added Total Calories and Pie Chart Sections (integrated into layout; adjust placement as needed) -->
+    <div class="row g-4 mt-4">
+        <div class="col-12 col-lg-6">
+            <div class="stat-card">
+                <h5>Total Calories Burned</h5>
+                <div class="total-exercise" id="totalCalories">0</div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-6">
+            <div class="recent-card">
+                <h5>Calories by Activity Type</h5>
+                <canvas id="caloriesPie" height="200"></canvas>
+            </div>
+        </div>
+    </div>
 
-<script>
-    async function loadDashboard() {
-       const activities = await apiGet('/api/activities/');  // Add '/api/'
-        let totalCalories = 0;
-        activities.forEach(act => {
-            totalCalories += act.calories_burned || 0;
-        });
-        document.getElementById('totalCalories').textContent = totalCalories;
-
-        // Pie chart by type
-        const typeCalories = {};
-        activities.forEach(act => {
-            const type = act.activity_type;
-            typeCalories[type] = (typeCalories[type] || 0) + (act.calories_burned || 0);
-        });
-
-        new Chart(document.getElementById('caloriesPie'), {
-            type: 'pie',
-            data: {
-                labels: Object.keys(typeCalories),
-                datasets: [{
-                    data: Object.values(typeCalories),
-                    backgroundColor: ['#ff8c00', '#007bff', '#28a745', '#dc3545', '#ffc107']
-                }]
-            },
-            options: { responsive: true }
-        });
-    }
-    loadDashboard();
-</script>
 </body>
 </html>
