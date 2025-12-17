@@ -69,7 +69,15 @@ class ProfileView(generics.RetrieveUpdateAPIView):
 
     def get_object(self):
         return self.request.user
-    # ... your existing code above ...
+
+    def perform_update(self, serializer):
+        # Handle avatar upload separately (it's in request.FILES)
+        avatar = self.request.FILES.get('avatar')
+        if avatar:
+            profile, created = Profile.objects.get_or_create(user=self.request.user)
+            profile.avatar = avatar
+            profile.save()
+        serializer.save()
 
 # NEW: Registration View + Serializer
 from rest_framework import serializers

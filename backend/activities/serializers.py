@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Activity, UserProfile  # Add Activity if missing
+from .models import Activity, Profile  # Add Activity if missing
 
 # Activity Serializer (required for your views)
 class ActivitySerializer(serializers.ModelSerializer):
