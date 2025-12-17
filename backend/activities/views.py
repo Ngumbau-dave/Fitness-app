@@ -56,12 +56,21 @@ class StatsView(APIView):
 
 
 # NEW: Profile View + Serializer
-class UserSerializer(ModelSerializer):
-    avatar = serializers.ImageField(required=False, allow_null=True)
+class UserSerializer(serializers.ModelSerializer):
+    avatar = serializers.SerializerMethodField()
+
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name']
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'avatar']
         read_only_fields = ['id', 'username']
+
+    def get_avatar(self, obj):
+        if hasattr(obj, 'profile') and obj.profile.avatar:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.profile.avatar.url)
+            return obj.profile.avatar.url
+        return None
 
 class ProfileView(generics.RetrieveUpdateAPIView):
     serializer_class = UserSerializer
