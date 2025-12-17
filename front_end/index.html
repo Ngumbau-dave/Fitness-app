@@ -144,24 +144,69 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="assets/js/api.js"></script>
 <script>
-    if (localStorage.getItem('access_token')) {
-        document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;color:white;font-size:24px;">Redirecting to dashboard...</div>';
-        setTimeout(() => window.location.href = 'dashboard.html', 1000);
-    }
+    // Remove the auto-redirect — it causes loops on login page
+    // We only want this on protected pages like dashboard.html
 
     async function loginUser(event) {
         event.preventDefault();
+
         const btn = event.target.querySelector('button');
-        btn.querySelector('.login-text').classList.add('d-none');
-        btn.querySelector('.spinner-border').classList.remove('d-none');
+        const loginText = btn.querySelector('.login-text');
+        const spinner = btn.querySelector('.spinner-border');
+        const errorEl = document.getElementById('error');
+
+        // Show spinner
+        loginText.classList.add('d-none');
+        spinner.classList.remove('d-none');
         btn.disabled = true;
+        errorEl.textContent = '';
 
-        // Your existing login logic here...
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
 
-        // On success/failure, reset button
-        // btn.querySelector('.login-text').classList.remove('d-none');
-        // btn.querySelector('.spinner-border').classList.add('d-none');
-        // btn.disabled = false;
+        if (!username || !password) {
+            errorEl.textContent = 'Please enter username and password';
+            resetButton();
+            return;
+        }
+
+        // Always clear old tokens before new login attempt
+        localStorage.clear();
+
+        try {
+            console.log('Sending login request...');
+
+            const response = await fetch('https://fittrack-api-7b9k.onrender.com/api/token/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+
+            const data = await response.json();
+            console.log('Login response:', response.status, data);
+
+            if (!response.ok) {
+                throw new Error(data.detail || data.non_field_errors || 'Invalid username or password');
+            }
+
+            // Success! Save tokens
+            localStorage.setItem('access_token', data.access);
+            localStorage.setItem('refresh_token', data.refresh || '');
+
+            // Redirect to dashboard
+            window.location.href = 'dashboard.html';
+
+        } catch (err) {
+            console.error('Login error:', err);
+            errorEl.textContent = err.message || 'Login failed. Please try again.';
+            resetButton();
+        }
+
+        function resetButton() {
+            loginText.classList.remove('d-none');
+            spinner.classList.add('d-none');
+            btn.disabled = false;
+        }
     }
 </script>
 </body>
