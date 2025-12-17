@@ -252,14 +252,24 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/api.js"></script>
     <script>
-        // Auth guard - redirect to login if not authenticated
-        if (!localStorage.getItem('access_token')) {
-            window.location.href = 'index.html';
+        // === AUTHENTICATION GUARD WITH 401 HANDLING ===
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+            window.location.href = 'index.html'; // No token → back to login
         }
+
+        // Global error handler for all apiGet calls on this page
+        window.addEventListener('unhandledrejection', event => {
+            const err = event.reason;
+            if (err && err.message && err.message.includes('401')) {
+                localStorage.clear();
+                window.location.href = 'index.html';
+            }
+        });
 
         async function loadProfile() {
             try {
-               const user = await apiGet('/api/profile/');
+                const user = await apiGet('/api/profile/');
                 const imageUrl = user.avatar || 'https://placehold.co/120x120';
 
                 // Update all photos

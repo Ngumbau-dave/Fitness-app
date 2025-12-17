@@ -151,147 +151,156 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="assets/js/api.js"></script>
-<script src="assets/js/auth.js"></script>
-<script>
-    if (!localStorage.getItem('access_token')) {
-        window.location.href = 'index.html';
-    }
-
-    let activities = [];  // Global to use across charts
-
-    async function loadProgressData() {
-        try {
-            activities = await apiGet('/api/activities/');  // Your endpoint
-            if (!Array.isArray(activities)) activities = [];
-
-            updateStats();
-            renderCharts();
-        } catch (err) {
-            console.error('Failed to load activities:', err);
-            // Optional: show error message on page
-            document.querySelector('.page-title').innerHTML += ' <small class="text-danger">(Failed to load data)</small>';
+    <script src="assets/js/api.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <script>
+        // === AUTHENTICATION GUARD ===
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+            window.location.href = 'index.html';
         }
-    }
 
-    function updateStats() {
-        const totalWorkouts = activities.length;
-        const totalDistance = activities.reduce((sum, a) => sum + (parseFloat(a.distance) || 0), 0).toFixed(1);
-        const totalDuration = activities.reduce((sum, a) => sum + (parseInt(a.duration) || 0), 0);
-        const totalCalories = activities.reduce((sum, a) => {
-            const mins = parseInt(a.duration) || 0;
-            let rate = 8; // default
-            if (a.activity_type.toLowerCase().includes('run') || a.activity_type.toLowerCase().includes('cycle')) rate = 10;
-            if (a.activity_type.toLowerCase().includes('yoga')) rate = 4;
-            return sum + (mins * rate);
-        }, 0);
-
-        document.getElementById('total-workouts') ? document.getElementById('total-workouts').textContent = totalWorkouts : null;
-        document.getElementById('total-distance') ? document.getElementById('total-distance').textContent = totalDistance + ' km' : null;
-        document.getElementById('avg-duration') ? document.getElementById('avg-duration').textContent = totalDuration + ' min' : null;
-        // Add more IDs if needed
-    }
-
-    function renderCharts() {
-        // Helper: Get last 7 days labels
-        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-        const today = new Date();
-        const weekData = Array(7).fill(0);
-
-        // Weekly workouts (last 7 days)
-        activities.forEach(act => {
-            const actDate = new Date(act.date);
-            const diffDays = Math.floor((today - actDate) / (1000 * 60 * 60 * 24));
-            if (diffDays >= 0 && diffDays < 7) {
-                const dayIndex = (today.getDay() - diffDays + 7) % 7;
-                weekData[dayIndex]++;
+        // Global handler for 401 errors from any apiGet call
+        window.addEventListener('unhandledrejection', event => {
+            const err = event.reason;
+            if (err && err.message && err.message.includes('401')) {
+                localStorage.clear();
+                window.location.href = 'index.html';
             }
         });
 
-        new Chart(document.getElementById('weeklyChart'), {
-            type: 'bar',
-            data: {
-                labels: days,
-                datasets: [{
-                    label: 'Workouts',
-                    data: weekData,
-                    backgroundColor: '#007bff'
-                }]
-            },
-            options: { responsive: true, plugins: { legend: { display: false } } }
-        });
+        let activities = [];  // Global to use across charts
 
-        // Distance trend (last 4 weeks - simplified)
-        const weeklyDistance = Array(4).fill(0);
-        activities.forEach(act => {
-            const actDate = new Date(act.date);
-            const weekDiff = Math.floor((today - actDate) / (7 * 24 * 60 * 60 * 1000));
-            if (weekDiff >= 0 && weekDiff < 4) {
-                weeklyDistance[3 - weekDiff] += parseFloat(act.distance) || 0;
+        async function loadProgressData() {
+            try {
+                activities = await apiGet('/api/activities/');  // Your endpoint
+                if (!Array.isArray(activities)) activities = [];
+
+                updateStats();
+                renderCharts();
+            } catch (err) {
+                console.error('Failed to load activities:', err);
+                document.querySelector('.page-title').innerHTML += ' <small class="text-danger">(Failed to load data)</small>';
             }
-        });
+        }
 
-        new Chart(document.getElementById('distanceChart'), {
-            type: 'line',
-            data: {
-                labels: ['Week 1', 'Week 2', 'Week 3', 'This Week'],
-                datasets: [{
-                    label: 'Distance (km)',
-                    data: weeklyDistance,
-                    borderColor: '#28a745',
-                    tension: 0.4,
-                    fill: true,
-                    backgroundColor: 'rgba(40, 167, 69, 0.2)'
-                }]
-            },
-            options: { responsive: true }
-        });
+        function updateStats() {
+            const totalWorkouts = activities.length;
+            const totalDistance = activities.reduce((sum, a) => sum + (parseFloat(a.distance) || 0), 0).toFixed(1);
+            const totalDuration = activities.reduce((sum, a) => sum + (parseInt(a.duration) || 0), 0);
+            const totalCalories = activities.reduce((sum, a) => {
+                const mins = parseInt(a.duration) || 0;
+                let rate = 8; // default
+                if (a.activity_type.toLowerCase().includes('run') || a.activity_type.toLowerCase().includes('cycle')) rate = 10;
+                if (a.activity_type.toLowerCase().includes('yoga')) rate = 4;
+                return sum + (mins * rate);
+            }, 0);
 
-        // Activity Types Pie
-        const typeCount = {};
-        activities.forEach(act => {
-            const type = act.activity_type || 'Other';
-            typeCount[type] = (typeCount[type] || 0) + 1;
-        });
+            document.getElementById('total-workouts') ? document.getElementById('total-workouts').textContent = totalWorkouts : null;
+            document.getElementById('total-distance') ? document.getElementById('total-distance').textContent = totalDistance + ' km' : null;
+            document.getElementById('avg-duration') ? document.getElementById('avg-duration').textContent = totalDuration + ' min' : null;
+        }
 
-        new Chart(document.getElementById('typesChart'), {
-            type: 'pie',
-            data: {
-                labels: Object.keys(typeCount),
-                datasets: [{
-                    data: Object.values(typeCount),
-                    backgroundColor: ['#007bff', '#28a745', '#dc3545', '#ffc107', '#6f42c1']
-                }]
-            },
-            options: { responsive: true }
-        });
+        function renderCharts() {
+            // Helper: Get last 7 days labels
+            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const today = new Date();
+            const weekData = Array(7).fill(0);
 
-        // Calories by Type (Doughnut)
-        const caloriesByType = {};
-        activities.forEach(act => {
-            const type = act.activity_type || 'Other';
-            const mins = parseInt(act.duration) || 0;
-            let cal = mins * 8;
-            if (type.toLowerCase().includes('run') || type.toLowerCase().includes('cycle')) cal = mins * 10;
-            if (type.toLowerCase().includes('yoga')) cal = mins * 4;
-            caloriesByType[type] = (caloriesByType[type] || 0) + cal;
-        });
+            // Weekly workouts (last 7 days)
+            activities.forEach(act => {
+                const actDate = new Date(act.date);
+                const diffDays = Math.floor((today - actDate) / (1000 * 60 * 60 * 24));
+                if (diffDays >= 0 && diffDays < 7) {
+                    const dayIndex = (today.getDay() - diffDays + 7) % 7;
+                    weekData[dayIndex]++;
+                }
+            });
 
-        new Chart(document.getElementById('caloriesChart'), {
-            type: 'doughnut',
-            data: {
-                labels: Object.keys(caloriesByType),
-                datasets: [{
-                    data: Object.values(caloriesByType),
-                    backgroundColor: ['#007bff', '#28a745', '#dc3545', '#ffc107']
-                }]
-            },
-            options: { responsive: true }
-        });
-    }
+            new Chart(document.getElementById('weeklyChart'), {
+                type: 'bar',
+                data: {
+                    labels: days,
+                    datasets: [{
+                        label: 'Workouts',
+                        data: weekData,
+                        backgroundColor: '#007bff'
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } } }
+            });
 
-    // Load on page ready
-    loadProgressData();
-</script>
+            // Distance trend (last 4 weeks - simplified)
+            const weeklyDistance = Array(4).fill(0);
+            activities.forEach(act => {
+                const actDate = new Date(act.date);
+                const weekDiff = Math.floor((today - actDate) / (7 * 24 * 60 * 60 * 1000));
+                if (weekDiff >= 0 && weekDiff < 4) {
+                    weeklyDistance[3 - weekDiff] += parseFloat(act.distance) || 0;
+                }
+            });
+
+            new Chart(document.getElementById('distanceChart'), {
+                type: 'line',
+                data: {
+                    labels: ['Week 1', 'Week 2', 'Week 3', 'This Week'],
+                    datasets: [{
+                        label: 'Distance (km)',
+                        data: weeklyDistance,
+                        borderColor: '#28a745',
+                        tension: 0.4,
+                        fill: true,
+                        backgroundColor: 'rgba(40, 167, 69, 0.2)'
+                    }]
+                },
+                options: { responsive: true }
+            });
+
+            // Activity Types Pie
+            const typeCount = {};
+            activities.forEach(act => {
+                const type = act.activity_type || 'Other';
+                typeCount[type] = (typeCount[type] || 0) + 1;
+            });
+
+            new Chart(document.getElementById('typesChart'), {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(typeCount),
+                    datasets: [{
+                        data: Object.values(typeCount),
+                        backgroundColor: ['#007bff', '#28a745', '#dc3545', '#ffc107', '#6f42c1']
+                    }]
+                },
+                options: { responsive: true }
+            });
+
+            // Calories by Type (Doughnut)
+            const caloriesByType = {};
+            activities.forEach(act => {
+                const type = act.activity_type || 'Other';
+                const mins = parseInt(act.duration) || 0;
+                let cal = mins * 8;
+                if (type.toLowerCase().includes('run') || type.toLowerCase().includes('cycle')) cal = mins * 10;
+                if (type.toLowerCase().includes('yoga')) cal = mins * 4;
+                caloriesByType[type] = (caloriesByType[type] || 0) + cal;
+            });
+
+            new Chart(document.getElementById('caloriesChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(caloriesByType),
+                    datasets: [{
+                        data: Object.values(caloriesByType),
+                        backgroundColor: ['#007bff', '#28a745', '#dc3545', '#ffc107']
+                    }]
+                },
+                options: { responsive: true }
+            });
+        }
+
+        // Load on page ready
+        loadProgressData();
+    </script>
 </body>
 </html>

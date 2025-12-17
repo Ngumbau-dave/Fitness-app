@@ -188,10 +188,12 @@
 
             window.location.href = 'dashboard.html';
 
-        } catch (err) {
-            errorEl.textContent = err.message;
-            resetButton();
-        }
+        }catch (err) {
+    console.error('Login error:', err);
+    errorEl.textContent = err.message;
+    localStorage.clear();  // Clear bad token
+    resetButton();
+}
 
         function resetButton() {
             loginText.classList.remove('d-none');
