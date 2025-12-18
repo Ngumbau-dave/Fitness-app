@@ -25,7 +25,7 @@ MET_VALUES = {
 class Activity(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='activities')
     activity_type = models.CharField(max_length=10, choices=ACTIVITY_CHOICES, default='OTH')
-    duration = models.PositiveIntegerField(help_text='Duration in minutes')
+    duration: models.PositiveIntegerField[int] = models.PositiveIntegerField(help_text='Duration in minutes')
     distance_km = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
     calories_burned = models.PositiveIntegerField(null=True, blank=True, editable=False)  # Auto-calculated
     date = models.DateField()

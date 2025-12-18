@@ -33,7 +33,7 @@
 </head>
 <body>
 
-    <!-- Sidebar (Desktop) - NOW DYNAMIC -->
+    <!-- Sidebar (Desktop) - DYNAMIC -->
     <div class="sidebar d-none d-md-block">
         <div class="text-center mb-5">
             <img id="sidebar-avatar" src="https://placehold.co/100x100" alt="Profile" class="rounded-circle mb-3" width="100">
@@ -91,7 +91,7 @@
                     </div>
                     <button type="submit" class="btn btn-primary btn-lg w-100">Save Workout</button>
                 </form>
-                <div id="form-message" class="mt-3 text-center"></div>
+                <div id="form-message" class="mt-3 text-center fw-bold"></div>
             </div>
         </div>
     </div>
@@ -117,74 +117,78 @@
             window.location.href = 'index.html';
         }
 
-        // Set today's date as default
+        // Default date to today
         document.getElementById('date').valueAsDate = new Date();
 
         // Load user profile for sidebar
         async function loadUserProfile() {
             try {
                 const userData = await apiGet('/api/profile/');
-                const fullName = `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || userData.username;
+                const fullName = `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || userData.username || 'User';
                 document.getElementById('sidebar-name').textContent = fullName;
-                document.getElementById('sidebar-email').textContent = userData.email || 'No email';
-
+                document.getElementById('sidebar-email').textContent = userData.email || 'No email set';
                 if (userData.avatar) {
                     document.getElementById('sidebar-avatar').src = userData.avatar;
                 }
             } catch (err) {
-                console.error('Failed to load profile:', err);
-                document.getElementById('sidebar-name').textContent = 'Guest';
-                document.getElementById('sidebar-email').textContent = 'Not loaded';
+                console.error('Profile load failed:', err);
             }
         }
 
-        // Form submission
-        // Form submission
-document.getElementById('addActivityForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const messageEl = document.getElementById('form-message');
-    messageEl.textContent = 'Saving...';
-    messageEl.className = 'mt-3 text-center text-primary';
+        // FIXED FORM SUBMISSION
+        document.getElementById('addActivityForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const messageEl = document.getElementById('form-message');
+            messageEl.textContent = 'Saving workout...';
+            messageEl.className = 'mt-3 text-center text-primary fw-bold';
 
-    const activityType = document.getElementById('activity_type').value.trim();
-    const duration = parseInt(document.getElementById('duration').value);
-    const distanceKm = parseFloat(document.getElementById('distance_km').value) || 0;
-    const date = document.getElementById('date').value;
-    const notes = document.getElementById('notes').value.trim() || '';
+            const activityType = document.getElementById('activity_type').value.trim();
+            const duration = parseInt(document.getElementById('duration').value);
+            const distanceKm = parseFloat(document.getElementById('distance_km').value) || 0;
+            const date = document.getElementById('date').value;
+            const notes = document.getElementById('notes').value.trim() || '';
 
-    // Validation
-    if (!activityType || !duration || !date) {
-        messageEl.textContent = 'Please fill all required fields.';
-        messageEl.className = 'mt-3 text-center text-danger';
-        return;
-    }
+            if (!activityType || isNaN(duration) || duration <= 0 || !date) {
+                messageEl.textContent = 'Please fill all required fields correctly.';
+                messageEl.className = 'mt-3 text-center text-danger fw-bold';
+                return;
+            }
 
-    const data = {
-        activity_type: activityType,
-        duration: duration,
-        distance_km: distanceKm,
-        date: date,
-        notes: notes || null,
-        calories_burned: 0  // Let backend calculate, or estimate here if needed
-    };
+            // Estimate calories (helps avoid backend validation issues)
+            let calRate = 8;
+            if (activityType.toLowerCase().includes('run') || activityType.toLowerCase().includes('swim')) calRate = 12;
+            if (activityType.toLowerCase().includes('cycle')) calRate = 10;
+            if (activityType.toLowerCase().includes('weight') || activityType.toLowerCase().includes('lift')) calRate = 6;
+            if (activityType.toLowerCase().includes('yoga')) calRate = 4;
 
-    try {
-        const response = await apiPost('/api/activities/', data);
+            const data = {
+                activity_type: activityType,
+                duration_minutes: duration,      // Common backend field name
+                duration: duration,              // Fallback
+                distance_km: distanceKm,
+                date: date,
+                notes: notes,
+                calories_burned: Math.round(duration * calRate)  // Send estimated value
+            };
 
-        messageEl.textContent = 'Workout saved successfully! 🎉';
-        messageEl.className = 'mt-3 text-center text-success';
+            try {
+                await apiPost('/api/activities/', data);
 
-        // Reset form
-        document.getElementById('addActivityForm').reset();
-        document.getElementById('date').valueAsDate = new Date();
-    } catch (err) {
-        console.error('Save failed:', err);
-        messageEl.textContent = 'Failed to save workout: ' + (err.message || 'Unknown error');
-        messageEl.className = 'mt-3 text-center text-danger';
-    }
-});
+                messageEl.textContent = 'Workout saved successfully! 🎉';
+                messageEl.className = 'mt-3 text-center text-success fw-bold';
 
-        // Load profile on page load
+                // Reset form
+                document.getElementById('addActivityForm').reset();
+                document.getElementById('date').valueAsDate = new Date();
+
+            } catch (err) {
+                console.error('Save failed:', err);
+                messageEl.textContent = `Failed to save: ${err.message || 'Check fields and try again'}`;
+                messageEl.className = 'mt-3 text-center text-danger fw-bold';
+            }
+        });
+
+        // Load profile on start
         loadUserProfile();
     </script>
 </body>
