@@ -299,7 +299,7 @@
                 photoElements.forEach(id => {
                     const el = document.getElementById(id);
                     if (avatarUrl) {
-                        el.src = avatarUrl;
+                        el.src = avatarUrl + '?t=' + Date.now();  // Cache bust
                         el.textContent = '';
                         el.classList.add('has-photo');
                     } else {
@@ -328,7 +328,6 @@
                 document.getElementById('statDistance').textContent = (statsData.total_distance || 0).toFixed(1);
                 document.getElementById('statCalories').textContent = statsData.total_calories || 0;
 
-                // Member since (static for now)
                 document.getElementById('joinedDate').textContent = 'December 2025';
 
             } catch (err) {
@@ -354,7 +353,7 @@
             }
         });
 
-        // Update profile
+        // FIXED: Profile update with automatic token refresh
         document.getElementById('profileForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const messageEl = document.getElementById('updateMessage');
@@ -369,14 +368,44 @@
             const imageFile = document.getElementById('profile_image').files[0];
             if (imageFile) formData.append('avatar', imageFile);
 
-            try {
-                const response = await fetch(BASE_URL + '/api/profile/', {
+            let accessToken = localStorage.getItem('access_token');
+
+            const makeRequest = async (token) => {
+                return await fetch(BASE_URL + '/api/profile/', {
                     method: 'PUT',
                     headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                        'Authorization': `Bearer ${token}`
                     },
                     body: formData
                 });
+            };
+
+            try {
+                let response = await makeRequest(accessToken);
+
+                // If token expired, refresh and retry
+                if (response.status === 401) {
+                    messageEl.textContent = 'Token expired, refreshing...';
+                    const refreshToken = localStorage.getItem('refresh_token');
+                    if (!refreshToken) throw new Error('No refresh token. Please log in again.');
+
+                    const refreshResponse = await fetch(BASE_URL + '/api/token/refresh/', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ refresh: refreshToken })
+                    });
+
+                    if (!refreshResponse.ok) {
+                        throw new Error('Session expired. Logging out...');
+                    }
+
+                    const refreshData = await refreshResponse.json();
+                    localStorage.setItem('access_token', refreshData.access);
+                    accessToken = refreshData.access;
+
+                    // Retry update
+                    response = await makeRequest(accessToken);
+                }
 
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => ({}));
@@ -386,16 +415,13 @@
                 messageEl.textContent = 'Profile updated successfully!';
                 messageEl.style.color = '#28a745';
 
-                loadProfileAndStats();
+                // Reload fresh data
+                setTimeout(loadProfileAndStats, 800);  // Small delay for server sync
+
             } catch (err) {
                 console.error('Update error:', err);
                 messageEl.textContent = 'Update failed: ' + err.message;
                 messageEl.style.color = '#dc3545';
-            }
-        });
 
-        // Load data
-        loadProfileAndStats();
-    </script>
-</body>
-</html>
+                // Force logout if refresh failed
+                if (err.message.includes('Session expired') || err.message.includes('refresh
