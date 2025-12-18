@@ -139,40 +139,50 @@
         }
 
         // Form submission
-        document.getElementById('addActivityForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const messageEl = document.getElementById('form-message');
-            messageEl.textContent = '';
-            messageEl.className = 'mt-3 text-center';
+        // Form submission
+document.getElementById('addActivityForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const messageEl = document.getElementById('form-message');
+    messageEl.textContent = 'Saving...';
+    messageEl.className = 'mt-3 text-center text-primary';
 
-            const data = {
-                activity_type: document.getElementById('activity_type').value,
-                duration: parseInt(document.getElementById('duration').value),
-                distance_km: parseFloat(document.getElementById('distance_km').value) || 0,
-                date: document.getElementById('date').value,
-                notes: document.getElementById('notes').value.trim() || null
-            };
+    const activityType = document.getElementById('activity_type').value.trim();
+    const duration = parseInt(document.getElementById('duration').value);
+    const distanceKm = parseFloat(document.getElementById('distance_km').value) || 0;
+    const date = document.getElementById('date').value;
+    const notes = document.getElementById('notes').value.trim() || '';
 
-            // Client-side calories estimation (optional, for UX)
-            let calPerMin = 8;
-            if (data.activity_type.toLowerCase().includes('run') || data.activity_type.toLowerCase().includes('swim')) calPerMin = 12;
-            if (data.activity_type.toLowerCase().includes('cycle')) calPerMin = 10;
-            if (data.activity_type.toLowerCase().includes('yoga')) calPerMin = 4;
-            if (data.activity_type.toLowerCase().includes('weight')) calPerMin = 6;
-            data.calories_burned = Math.round(data.duration * calPerMin);
+    // Validation
+    if (!activityType || !duration || !date) {
+        messageEl.textContent = 'Please fill all required fields.';
+        messageEl.className = 'mt-3 text-center text-danger';
+        return;
+    }
 
-            try {
-                await apiPost('/api/activities/', data);
-                messageEl.textContent = 'Workout saved successfully! 🎉';
-                messageEl.classList.add('text-success');
-                document.getElementById('addActivityForm').reset();
-                document.getElementById('date').valueAsDate = new Date(); // Reset date to today
-            } catch (err) {
-                console.error('Save failed:', err);
-                messageEl.textContent = 'Failed to save workout. Please try again.';
-                messageEl.classList.add('text-danger');
-            }
-        });
+    const data = {
+        activity_type: activityType,
+        duration: duration,
+        distance_km: distanceKm,
+        date: date,
+        notes: notes || null,
+        calories_burned: 0  // Let backend calculate, or estimate here if needed
+    };
+
+    try {
+        const response = await apiPost('/api/activities/', data);
+
+        messageEl.textContent = 'Workout saved successfully! 🎉';
+        messageEl.className = 'mt-3 text-center text-success';
+
+        // Reset form
+        document.getElementById('addActivityForm').reset();
+        document.getElementById('date').valueAsDate = new Date();
+    } catch (err) {
+        console.error('Save failed:', err);
+        messageEl.textContent = 'Failed to save workout: ' + (err.message || 'Unknown error');
+        messageEl.className = 'mt-3 text-center text-danger';
+    }
+});
 
         // Load profile on page load
         loadUserProfile();
