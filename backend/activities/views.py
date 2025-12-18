@@ -1,15 +1,19 @@
+# Standard library/Django imports
+from django.contrib.auth.models import User
+from django.db.models import Sum, Count
+
+# Third-party imports
 from rest_framework import generics, status
+from rest_framework import serializers
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.serializers import ModelSerializer
-from django.db.models import Sum, Count
-from django.contrib.auth.models import User
-from .models import Activity, Profile
-from .serializers import ActivitySerializer
-from rest_framework import serializers
-from .serializers import UserSerializer
+from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
+
+# Local imports
+from .models import Activity, Profile
+from .serializers import ActivitySerializer, UserSerializer
 
 class ActivityListCreateView(generics.ListCreateAPIView):
     serializer_class = ActivitySerializer
