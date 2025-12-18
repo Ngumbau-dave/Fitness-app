@@ -46,12 +46,12 @@
 </head>
 <body>
 
-    <!-- Sidebar (Desktop) -->
+    <!-- Sidebar (Desktop) - NOW DYNAMIC -->
     <div class="sidebar d-none d-md-block">
         <div class="text-center mb-5">
-            <img src="https://placehold.co/100x100" alt="Profile" class="rounded-circle mb-3" width="100">
-            <h5>David Musyoka</h5>
-            <p>davidngumbau29@gmail.com</p>
+            <img id="sidebar-avatar" src="https://placehold.co/100x100" alt="Profile" class="rounded-circle mb-3" width="100">
+            <h5 id="sidebar-name">Loading...</h5>
+            <p id="sidebar-email">Loading...</p>
         </div>
         <a href="dashboard.html"><i class="fas fa-home"></i> Dashboard</a>
         <a href="progress.html" class="active"><i class="fas fa-chart-line"></i> Progress</a>
@@ -70,28 +70,28 @@
         </div>
 
         <div class="container-fluid">
-            <h2 class="page-title">Your Fitness Progress 🔥</h2>
+            <h2 class="page-title" id="page-greeting">Your Fitness Progress 🔥</h2>
 
             <!-- Summary Stats -->
             <div class="row g-4 mb-5">
                 <div class="col-6 col-md-3">
                     <div class="stat-card">
                         <i class="fas fa-dumbbell stat-icon text-primary"></i>
-                        <h3>45</h3>
+                        <h3 id="total-workouts">0</h3>
                         <p>Total Workouts</p>
                     </div>
                 </div>
                 <div class="col-6 col-md-3">
                     <div class="stat-card">
                         <i class="fas fa-road stat-icon text-success"></i>
-                        <h3>120 km</h3>
+                        <h3 id="total-distance">0 km</h3>
                         <p>Total Distance</p>
                     </div>
                 </div>
                 <div class="col-6 col-md-3">
                     <div class="stat-card">
                         <i class="fas fa-clock stat-icon text-info"></i>
-                        <h3>28 hrs</h3>
+                        <h3 id="total-duration">0 min</h3>
                         <p>Time Exercised</p>
                     </div>
                 </div>
@@ -100,9 +100,9 @@
                         <div class="progress-ring">
                             <svg width="160" height="160">
                                 <circle class="bg" cx="80" cy="80" r="70"/>
-                                <circle class="progress" cx="80" cy="80" r="70" stroke-dasharray="440" stroke-dashoffset="88"/>
+                                <circle class="progress" cx="80" cy="80" r="70" stroke-dasharray="440" stroke-dashoffset="440"/>
                             </svg>
-                            <div class="progress-text">80%</div>
+                            <div class="progress-text" id="goal-progress-text">0%</div>
                         </div>
                         <p>Goal Achieved</p>
                     </div>
@@ -160,7 +160,7 @@
             window.location.href = 'index.html';
         }
 
-        // Global handler for 401 errors from any apiGet call
+        // Global handler for 401 errors
         window.addEventListener('unhandledrejection', event => {
             const err = event.reason;
             if (err && err.message && err.message.includes('401')) {
@@ -169,11 +169,35 @@
             }
         });
 
-        let activities = [];  // Global to use across charts
+        let activities = [];
+
+        // NEW: Load user profile for sidebar and greeting
+        async function loadUserProfile() {
+            try {
+                const userData = await apiGet('/api/profile/');
+
+                // Sidebar
+                const fullName = `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || userData.username;
+                document.getElementById('sidebar-name').textContent = fullName;
+                document.getElementById('sidebar-email').textContent = userData.email || 'No email';
+
+                if (userData.avatar) {
+                    document.getElementById('sidebar-avatar').src = userData.avatar;
+                }
+
+                // Personalized greeting
+                document.getElementById('page-greeting').textContent = 
+                    `Your Fitness Progress, ${userData.first_name || userData.username || 'Athlete'} 🔥`;
+            } catch (err) {
+                console.error('Failed to load profile:', err);
+                document.getElementById('sidebar-name').textContent = 'Guest';
+                document.getElementById('sidebar-email').textContent = 'Not loaded';
+            }
+        }
 
         async function loadProgressData() {
             try {
-                activities = await apiGet('/api/activities/');  // Your endpoint
+                activities = await apiGet('/api/activities/');
                 if (!Array.isArray(activities)) activities = [];
 
                 updateStats();
@@ -186,28 +210,33 @@
 
         function updateStats() {
             const totalWorkouts = activities.length;
-            const totalDistance = activities.reduce((sum, a) => sum + (parseFloat(a.distance) || 0), 0).toFixed(1);
+            const totalDistance = activities.reduce((sum, a) => sum + (parseFloat(a.distance_km || a.distance) || 0), 0).toFixed(1);
             const totalDuration = activities.reduce((sum, a) => sum + (parseInt(a.duration) || 0), 0);
-            const totalCalories = activities.reduce((sum, a) => {
-                const mins = parseInt(a.duration) || 0;
-                let rate = 8; // default
-                if (a.activity_type.toLowerCase().includes('run') || a.activity_type.toLowerCase().includes('cycle')) rate = 10;
-                if (a.activity_type.toLowerCase().includes('yoga')) rate = 4;
-                return sum + (mins * rate);
-            }, 0);
 
-            document.getElementById('total-workouts') ? document.getElementById('total-workouts').textContent = totalWorkouts : null;
-            document.getElementById('total-distance') ? document.getElementById('total-distance').textContent = totalDistance + ' km' : null;
-            document.getElementById('avg-duration') ? document.getElementById('avg-duration').textContent = totalDuration + ' min' : null;
+            // Update stat cards (added IDs to match your HTML)
+            const workoutsEl = document.querySelector('.stat-card:nth-child(1) h3');
+            const distanceEl = document.querySelector('.stat-card:nth-child(2) h3');
+            const durationEl = document.querySelector('.stat-card:nth-child(3) h3');
+
+            if (workoutsEl) workoutsEl.textContent = totalWorkouts;
+            if (distanceEl) distanceEl.textContent = totalDistance + ' km';
+            if (durationEl) durationEl.textContent = totalDuration + ' min';
+
+            // Goal progress (assuming 150km goal - adjust as needed)
+            const goal = 150;
+            const progressPercent = Math.min(Math.round((totalDistance / goal) * 100), 100);
+            const circumference = 440;
+            const offset = circumference - (circumference * progressPercent / 100);
+            document.querySelector('.progress-ring .progress').style.strokeDashoffset = offset;
+            document.getElementById('goal-progress-text').textContent = progressPercent + '%';
         }
 
         function renderCharts() {
-            // Helper: Get last 7 days labels
+            // Your existing renderCharts() function remains unchanged
             const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
             const today = new Date();
             const weekData = Array(7).fill(0);
 
-            // Weekly workouts (last 7 days)
             activities.forEach(act => {
                 const actDate = new Date(act.date);
                 const diffDays = Math.floor((today - actDate) / (1000 * 60 * 60 * 24));
@@ -230,13 +259,12 @@
                 options: { responsive: true, plugins: { legend: { display: false } } }
             });
 
-            // Distance trend (last 4 weeks - simplified)
             const weeklyDistance = Array(4).fill(0);
             activities.forEach(act => {
                 const actDate = new Date(act.date);
                 const weekDiff = Math.floor((today - actDate) / (7 * 24 * 60 * 60 * 1000));
                 if (weekDiff >= 0 && weekDiff < 4) {
-                    weeklyDistance[3 - weekDiff] += parseFloat(act.distance) || 0;
+                    weeklyDistance[3 - weekDiff] += parseFloat(act.distance_km || act.distance) || 0;
                 }
             });
 
@@ -256,7 +284,6 @@
                 options: { responsive: true }
             });
 
-            // Activity Types Pie
             const typeCount = {};
             activities.forEach(act => {
                 const type = act.activity_type || 'Other';
@@ -275,7 +302,6 @@
                 options: { responsive: true }
             });
 
-            // Calories by Type (Doughnut)
             const caloriesByType = {};
             activities.forEach(act => {
                 const type = act.activity_type || 'Other';
@@ -299,7 +325,8 @@
             });
         }
 
-        // Load on page ready
+        // Load profile and data
+        loadUserProfile();
         loadProgressData();
     </script>
 </body>
