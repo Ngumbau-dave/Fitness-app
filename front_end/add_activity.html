@@ -33,7 +33,7 @@
 </head>
 <body>
 
-    <!-- Sidebar (Desktop) - DYNAMIC -->
+    <!-- Sidebar (Desktop) -->
     <div class="sidebar d-none d-md-block">
         <div class="text-center mb-5">
             <img id="sidebar-avatar" src="https://placehold.co/100x100" alt="Profile" class="rounded-circle mb-3" width="100">
@@ -154,21 +154,21 @@
                 return;
             }
 
-            // Estimate calories (helps avoid backend validation issues)
-            let calRate = 8;
-            if (activityType.toLowerCase().includes('run') || activityType.toLowerCase().includes('swim')) calRate = 12;
-            if (activityType.toLowerCase().includes('cycle')) calRate = 10;
-            if (activityType.toLowerCase().includes('weight') || activityType.toLowerCase().includes('lift')) calRate = 6;
-            if (activityType.toLowerCase().includes('yoga')) calRate = 4;
+            // Estimate calories_burned (prevents validation errors)
+            let calRate = 8; // default
+            const lowerType = activityType.toLowerCase();
+            if (lowerType.includes('run') || lowerType.includes('swim')) calRate = 12;
+            if (lowerType.includes('cycle')) calRate = 10;
+            if (lowerType.includes('weight') || lowerType.includes('lift')) calRate = 6;
+            if (lowerType.includes('yoga')) calRate = 4;
 
             const data = {
                 activity_type: activityType,
-                duration_minutes: duration,      // Common backend field name
-                duration: duration,              // Fallback
+                duration_minutes: duration,  // This is the key fix
                 distance_km: distanceKm,
                 date: date,
                 notes: notes,
-                calories_burned: Math.round(duration * calRate)  // Send estimated value
+                calories_burned: Math.round(duration * calRate)  // Estimated value
             };
 
             try {
@@ -177,18 +177,15 @@
                 messageEl.textContent = 'Workout saved successfully! 🎉';
                 messageEl.className = 'mt-3 text-center text-success fw-bold';
 
-                // Reset form
                 document.getElementById('addActivityForm').reset();
                 document.getElementById('date').valueAsDate = new Date();
-
             } catch (err) {
                 console.error('Save failed:', err);
-                messageEl.textContent = `Failed to save: ${err.message || 'Check fields and try again'}`;
+                messageEl.textContent = `Failed: ${err.message || 'Invalid data'}`;
                 messageEl.className = 'mt-3 text-center text-danger fw-bold';
             }
         });
 
-        // Load profile on start
         loadUserProfile();
     </script>
 </body>
