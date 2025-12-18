@@ -7,13 +7,16 @@ function getToken() {
 }
 
 // Generic GET request
+// Generic GET request
 async function apiGet(endpoint) {
-    const response = await fetch(BASE_URL + endpoint, {
-        headers: {
-            "Authorization": `Bearer ${getToken() || ''}`,  // Safe if no token
-            "Content-Type": "application/json"
-        }
-    });
+    const token = getToken();
+    const headers = {
+        "Content-Type": "application/json"
+    };
+    if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+    }
+    const response = await fetch(BASE_URL + endpoint, { headers });
     if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -22,12 +25,16 @@ async function apiGet(endpoint) {
 
 // Generic POST request
 async function apiPost(endpoint, data) {
+    const token = getToken();
+    const headers = {
+        "Content-Type": "application/json"
+    };
+    if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+    }
     const response = await fetch(BASE_URL + endpoint, {
         method: "POST",
-        headers: {
-            "Authorization": `Bearer ${getToken() || ''}`,
-            "Content-Type": "application/json"
-        },
+        headers,
         body: JSON.stringify(data)
     });
     if (!response.ok) {

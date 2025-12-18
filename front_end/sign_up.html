@@ -89,14 +89,16 @@
         password: document.getElementById('password').value,
         password2: document.getElementById('password2').value
     };
+
     try {
-        const response = await apiPost('/api/register/', data);
-        localStorage.setItem('access_token', response.access);
-        localStorage.setItem('refresh_token', response.refresh);
-        alert('Account created!');
+        const response = await apiPost('/api/register/', data);  // Fixed endpoint
+        // Save tokens consistently
+        localStorage.setItem('access_token', response.access);  // Fixed key
+        localStorage.setItem('refresh_token', response.refresh);  // Fixed key
+        alert('Account created successfully!');
         window.location.href = 'dashboard.html';
     } catch (err) {
-        document.getElementById('error').textContent = 'Failed: ' + err.message;
+        document.getElementById('error').textContent = 'Registration failed: ' + (err.message || 'Check fields and try again.');
     }
 });
 </script>
