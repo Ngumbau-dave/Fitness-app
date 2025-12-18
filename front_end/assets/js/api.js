@@ -9,28 +9,29 @@ function getToken() {
 // Generic GET request
 // Generic GET request
 async function apiGet(endpoint) {
-    const token = getToken();
+    const token = localStorage.getItem('access_token');
     const headers = {
         "Content-Type": "application/json"
     };
-    if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
+    if (token && token.trim() !== '' && token !== 'null' && token !== 'undefined') {
+        headers["Authorization"] = `Bearer ${token.trim()}`;
     }
     const response = await fetch(BASE_URL + endpoint, { headers });
     if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API GET error:', response.status, errorText);
         throw new Error(`HTTP error! status: ${response.status}`);
     }
     return response.json();
 }
 
-// Generic POST request
 async function apiPost(endpoint, data) {
-    const token = getToken();
+    const token = localStorage.getItem('access_token');
     const headers = {
         "Content-Type": "application/json"
     };
-    if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
+    if (token && token.trim() !== '' && token !== 'null' && token !== 'undefined') {
+        headers["Authorization"] = `Bearer ${token.trim()}`;
     }
     const response = await fetch(BASE_URL + endpoint, {
         method: "POST",
@@ -38,10 +39,14 @@ async function apiPost(endpoint, data) {
         body: JSON.stringify(data)
     });
     if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API POST error:', response.status, errorText);
         throw new Error(`HTTP error! status: ${response.status}`);
     }
     return response.json();
 }
+
+// Do the same for apiGet if needed
 
 async function loginUser(event) {
     event.preventDefault();  // Stop form reload
