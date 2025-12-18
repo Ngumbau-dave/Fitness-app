@@ -32,7 +32,7 @@
         @media (max-width: 767px) { .main-content { padding: 15px; } .greeting { font-size: 24px; } }
         @media (min-width: 768px) { .main-content { padding: 40px; padding-bottom: 0; margin-left: 250px; } }
 
-        /* Sidebar & Bottom Nav (same as before) */
+        /* Sidebar & Bottom Nav */
         .sidebar { width: 250px; background: white; height: 100vh; position: fixed; left: 0; top: 0; padding-top: 100px; box-shadow: 2px 0 15px rgba(0,0,0,0.1); }
         .sidebar a { display: block; padding: 15px 20px; color: #6c757d; font-size: 16px; }
         .sidebar a.active, .sidebar a:hover { background: #e2f1ff; color: #007bff; border-left: 4px solid #007bff; }
@@ -47,10 +47,10 @@
     <!-- Sidebar (Desktop) -->
     <div class="sidebar d-none d-md-block">
         <div class="text-center mb-5">
-    <img id="sidebar-avatar" src="https://placehold.co/100x100" alt="Profile" class="rounded-circle mb-3" width="100">
-    <h5 id="sidebar-name">Loading...</h5>
-    <p id="sidebar-email">Loading...</p>
-</div>
+            <img id="sidebar-avatar" src="https://placehold.co/100x100" alt="Profile" class="rounded-circle mb-3" width="100">
+            <h5 id="sidebar-name">Loading...</h5>
+            <p id="sidebar-email">Loading...</p>
+        </div>
         <a href="dashboard.html" class="active"><i class="fas fa-home"></i> Dashboard</a>
         <a href="progress.html"><i class="fas fa-chart-line"></i> Progress</a>
         <a href="add_activity.html"><i class="fas fa-dumbbell"></i> Workouts</a>
@@ -68,7 +68,7 @@
         </div>
 
         <div class="container-fluid">
-            <div class="greeting">Welcome back, David! 💪</div>
+            <div class="greeting" id="greeting">Welcome back! 💪</div>
 
             <!-- Stats Cards -->
             <div class="row g-4 mb-5">
@@ -98,9 +98,9 @@
                         <div class="progress-ring">
                             <svg width="140" height="140">
                                 <circle class="bg" cx="70" cy="70" r="60"/>
-                                <circle class="progress" cx="70" cy="70" r="60" stroke-dasharray="377" stroke-dashoffset="75"/>
+                                <circle class="progress" cx="70" cy="70" r="60" stroke-dasharray="377" stroke-dashoffset="377"/>
                             </svg>
-                            <div class="progress-text">80%</div>
+                            <div class="progress-text" id="progress-text">0%</div>
                         </div>
                         <p>Weekly Goal</p>
                     </div>
@@ -116,9 +116,7 @@
                     <div class="recent-card mt-4">
                         <h5>Recent Activities</h5>
                         <ul class="list-group list-group-flush" id="recent-activities">
-                            <li class="list-group-item">Running - 5km - 35 min</li>
-                            <li class="list-group-item">Weightlifting - 45 min</li>
-                            <li class="list-group-item">Yoga - 30 min</li>
+                            <!-- Filled dynamically -->
                         </ul>
                     </div>
                 </div>
@@ -126,6 +124,22 @@
                     <div class="recent-card">
                         <h5>Weekly Activity</h5>
                         <canvas id="weeklyChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Calories + Pie Chart -->
+            <div class="row g-4 mt-4">
+                <div class="col-12 col-lg-6">
+                    <div class="stat-card">
+                        <h5>Total Calories Burned</h5>
+                        <div class="total-exercise display-4 fw-bold text-danger" id="totalCalories">0</div>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-6">
+                    <div class="recent-card">
+                        <h5>Calories by Activity Type</h5>
+                        <canvas id="caloriesPie" height="200"></canvas>
                     </div>
                 </div>
             </div>
@@ -145,101 +159,124 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/api.js"></script>
-    <script src="assets/js/auth.js"></script> <!-- for logout() -->
+    <script src="assets/js/auth.js"></script>
+
     <script>
-        if (!localStorage.getItem('access_token')) window.location.href = 'index.html';
-
-        async function loadDashboard() {
-            const activities = await apiGet('/api/activities/');  // Add '/api/'
-            const stats = await apiGet('/api/stats/');
-
-            // Update stats cards
-            document.getElementById('workouts').textContent = stats.total_activities || 0;
-            document.getElementById('distance').textContent = `${stats.total_distance || 0} km`;
-            document.getElementById('calories').textContent = stats.total_calories || 0;
-
-            // Dynamic Progress Ring
-            const progressPercent = stats.progress_percentage || 0;
-            const progressCircle = document.querySelector('.progress .progress');
-            const circumference = 2 * Math.PI * 60; // r=60
-            progressCircle.style.strokeDasharray = circumference;
-            progressCircle.style.strokeDashoffset = circumference * (1 - progressPercent / 100);
-            document.querySelector('.progress-text').textContent = `${progressPercent}%`;
-
-            // Dynamic Weekly Bar Chart
-            const weeklyData = [0, 0, 0, 0, 0, 0, 0]; // Mon-Sun
-            activities.forEach(act => {
-                const day = new Date(act.date).getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
-                const index = (day + 6) % 7; // Shift to Mon=0, Tue=1, ..., Sun=6
-                weeklyData[index]++;
-            });
-            new Chart(document.getElementById('weeklyChart'), {
-                type: 'bar',
-                data: {
-                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                    datasets: [{
-                        label: 'Workouts',
-                        data: weeklyData,
-                        backgroundColor: '#007bff'
-                    }]
-                },
-                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
-            });
-
-            // Total Calories
-            let totalCalories = 0;
-            activities.forEach(act => {
-                totalCalories += act.calories_burned || 0;
-            });
-            document.getElementById('totalCalories').textContent = totalCalories;
-
-            // Pie chart by type
-            const typeCalories = {};
-            activities.forEach(act => {
-                const type = act.activity_type;
-                typeCalories[type] = (typeCalories[type] || 0) + (act.calories_burned || 0);
-            });
-
-            new Chart(document.getElementById('caloriesPie'), {
-                type: 'pie',
-                data: {
-                    labels: Object.keys(typeCalories),
-                    datasets: [{
-                        data: Object.values(typeCalories),
-                        backgroundColor: ['#ff8c00', '#007bff', '#28a745', '#dc3545', '#ffc107']
-                    }]
-                },
-                options: { responsive: true }
-            });
-
-            // Update recent activities (dynamic example; adjust if needed)
-            const recentList = document.getElementById('recent-activities');
-            recentList.innerHTML = '';
-            activities.slice(-3).reverse().forEach(act => {
-                const li = document.createElement('li');
-                li.className = 'list-group-item';
-                li.textContent = `${act.activity_type} - ${act.distance_km || 0}km - ${act.duration} min`;
-                recentList.appendChild(li);
-            });
+        // Redirect if not logged in
+        if (!localStorage.getItem('access_token')) {
+            window.location.href = 'index.html';
         }
+
+        // Load user profile for sidebar and greeting
+        async function loadUserProfile() {
+            try {
+                const userData = await apiGet('/api/profile/');
+
+                // Sidebar
+                const fullName = `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || userData.username;
+                document.getElementById('sidebar-name').textContent = fullName;
+                document.getElementById('sidebar-email').textContent = userData.email || 'No email';
+
+                if (userData.avatar) {
+                    document.getElementById('sidebar-avatar').src = userData.avatar;
+                }
+
+                // Greeting
+                document.getElementById('greeting').textContent = `Welcome back, ${userData.first_name || userData.username || 'User'}! 💪`;
+            } catch (err) {
+                console.error('Failed to load profile:', err);
+                document.getElementById('sidebar-name').textContent = 'Guest';
+                document.getElementById('sidebar-email').textContent = 'Not loaded';
+                document.getElementById('greeting').textContent = 'Welcome back! 💪';
+            }
+        }
+
+        // Main dashboard data
+        async function loadDashboard() {
+            try {
+                const activities = await apiGet('/api/activities/');
+                const stats = await apiGet('/api/stats/');
+
+                // Stats cards
+                document.getElementById('workouts').textContent = stats.total_activities || 0;
+                document.getElementById('distance').textContent = `${(stats.total_distance || 0).toFixed(1)} km`;
+                document.getElementById('calories').textContent = stats.total_calories || 0;
+
+                // Progress ring
+                const progressPercent = Math.round(stats.progress_percentage || 0);
+                const circumference = 2 * Math.PI * 60;
+                const progressCircle = document.querySelector('.progress-ring .progress');
+                progressCircle.style.strokeDasharray = circumference;
+                progressCircle.style.strokeDashoffset = circumference * (1 - progressPercent / 100);
+                document.getElementById('progress-text').textContent = `${progressPercent}%`;
+
+                // Weekly bar chart
+                const weeklyData = [0, 0, 0, 0, 0, 0, 0]; // Mon-Sun
+                activities.forEach(act => {
+                    const day = new Date(act.date).getDay();
+                    const index = (day + 6) % 7; // Mon=0
+                    weeklyData[index]++;
+                });
+                new Chart(document.getElementById('weeklyChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                        datasets: [{
+                            label: 'Workouts',
+                            data: weeklyData,
+                            backgroundColor: '#007bff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true } }
+                    }
+                });
+
+                // Total calories display
+                document.getElementById('totalCalories').textContent = stats.total_calories || 0;
+
+                // Pie chart
+                const typeCalories = {};
+                activities.forEach(act => {
+                    const type = act.activity_type || 'Other';
+                    typeCalories[type] = (typeCalories[type] || 0) + (act.calories_burned || 0);
+                });
+                new Chart(document.getElementById('caloriesPie'), {
+                    type: 'pie',
+                    data: {
+                        labels: Object.keys(typeCalories),
+                        datasets: [{
+                            data: Object.values(typeCalories),
+                            backgroundColor: ['#ff8c00', '#007bff', '#28a745', '#dc3545', '#ffc107', '#6f42c1']
+                        }]
+                    },
+                    options: { responsive: true }
+                });
+
+                // Recent activities
+                const recentList = document.getElementById('recent-activities');
+                recentList.innerHTML = '';
+                const recent = activities.slice(-3).reverse();
+                if (recent.length === 0) {
+                    recentList.innerHTML = '<li class="list-group-item text-muted">No activities yet</li>';
+                } else {
+                    recent.forEach(act => {
+                        const li = document.createElement('li');
+                        li.className = 'list-group-item';
+                        li.textContent = `${act.activity_type} - ${act.distance_km || 0}km - ${act.duration} min`;
+                        recentList.appendChild(li);
+                    });
+                }
+            } catch (err) {
+                console.error('Failed to load dashboard data:', err);
+            }
+        }
+
+        // Load everything
+        loadUserProfile();
         loadDashboard();
     </script>
-
-    <!-- Added Total Calories and Pie Chart Sections (integrated into layout; adjust placement as needed) -->
-    <div class="row g-4 mt-4">
-        <div class="col-12 col-lg-6">
-            <div class="stat-card">
-                <h5>Total Calories Burned</h5>
-                <div class="total-exercise" id="totalCalories">0</div>
-            </div>
-        </div>
-        <div class="col-12 col-lg-6">
-            <div class="recent-card">
-                <h5>Calories by Activity Type</h5>
-                <canvas id="caloriesPie" height="200"></canvas>
-            </div>
-        </div>
-    </div>
-
 </body>
 </html>
