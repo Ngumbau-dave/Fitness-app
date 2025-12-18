@@ -34,13 +34,20 @@
             border-radius: 50%;
             border: 4px solid #007bff;
             object-fit: cover;
+            background-color: #007bff;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            font-weight: bold;
         }
         .main-content {
             flex: 1;
             padding-bottom: 70px;
         }
 
-        /* Bottom Nav: Mobile only */
+        /* Bottom Nav & Sidebar */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -62,7 +69,6 @@
             font-size: 24px;
         }
 
-        /* Sidebar Nav: Desktop only */
         .sidebar {
             width: 250px;
             background: white;
@@ -92,7 +98,7 @@
         @media (max-width: 767px) {
             .sidebar { display: none; }
             .main-content { margin-left: 0; }
-            .profile-photo { width: 80px; height: 80px; }
+            .profile-photo { width: 80px; height: 80px; font-size: 32px; }
         }
 
         @media (min-width: 768px) {
@@ -102,9 +108,7 @@
                 padding: 40px;
                 padding-bottom: 0;
             }
-            .profile-photo { width: 150px; height: 150px; }
-            .profile-header h5 { font-size: 28px; }
-            .profile-header p { font-size: 18px; }
+            .profile-photo { width: 150px; height: 150px; font-size: 60px; }
             .accordion { max-width: 800px; margin: 0 auto; }
         }
 
@@ -120,9 +124,19 @@
             border: 4px solid #007bff;
             cursor: pointer;
             transition: transform 0.3s;
+            background-color: #007bff;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 50px;
+            font-weight: bold;
         }
         .image-preview:hover {
             transform: scale(1.05);
+        }
+        .image-preview.has-photo {
+            background-color: transparent;
         }
     </style>
 </head>
@@ -131,9 +145,9 @@
     <!-- Sidebar Navigation (Desktop) -->
     <div class="sidebar d-none d-md-block">
         <div class="text-center mb-5">
-            <img id="sidebarPhoto" src="https://placehold.co/100x100" alt="Profile" class="profile-photo mb-3">
-            <h5 id="sidebarName">Loading...</h5>
-            <p id="sidebarEmail">Loading...</p>
+            <div id="sidebarPhoto" class="profile-photo">U</div>
+            <h5 id="sidebarName">User</h5>
+            <p id="sidebarEmail">No email set</p>
         </div>
         <a href="dashboard.html"><i class="fas fa-home"></i> Dashboard</a>
         <a href="progress.html"><i class="fas fa-chart-line"></i> Progress</a>
@@ -153,9 +167,9 @@
 
         <!-- Mobile Profile Header -->
         <div class="profile-header text-center d-md-none mb-4">
-            <img id="mobilePhoto" src="https://placehold.co/100x100" alt="Profile Photo" class="profile-photo">
-            <h5 id="mobileName">Loading...</h5>
-            <p id="mobileEmail">Loading...</p>
+            <div id="mobilePhoto" class="profile-photo">U</div>
+            <h5 id="mobileName">User</h5>
+            <p id="mobileEmail">No email set</p>
         </div>
 
         <!-- Update Profile Form -->
@@ -164,7 +178,7 @@
                 <h4 class="text-center mb-4">Update Profile</h4>
                 <form id="profileForm">
                     <div class="text-center mb-4">
-                        <img id="previewImage" src="https://placehold.co/120x120" alt="Profile Preview" class="image-preview">
+                        <div id="previewImage" class="image-preview">U</div>
                         <div class="mt-3">
                             <input type="file" id="profile_image" accept="image/*" class="form-control">
                             <small class="text-muted">Click the photo to change</small>
@@ -199,9 +213,9 @@
                     </h2>
                     <div id="personal" class="accordion-collapse collapse">
                         <div class="accordion-body">
-                            Name: <span id="detailName">Loading...</span><br>
-                            Email: <span id="detailEmail">Loading...</span><br>
-                            Member Since: <span id="joinedDate">Loading...</span>
+                            Name: <span id="detailName">User</span><br>
+                            Email: <span id="detailEmail">No email set</span><br>
+                            Member Since: <span id="joinedDate">December 2025</span>
                         </div>
                     </div>
                 </div>
@@ -215,7 +229,7 @@
                     <div id="stats" class="accordion-collapse collapse">
                         <div class="accordion-body">
                             Total Workouts: <span id="statWorkouts">0</span><br>
-                            Total Distance: <span id="statDistance">0</span> km<br>
+                            Total Distance: <span id="statDistance">0</span> km<br>
                             Total Calories Burned: <span id="statCalories">0</span>
                         </div>
                     </div>
@@ -275,34 +289,47 @@
                     apiGet('/api/stats/')
                 ]);
 
-                const fullName = `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || userData.username;
-                const avatarUrl = userData.avatar || 'https://placehold.co/120x120';
+                const fullName = `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || userData.username || 'User';
+                const initial = (fullName.charAt(0).toUpperCase() || 'U');
+                const email = userData.email || 'No email set';
 
-                // Update all profile displays
-                document.getElementById('sidebarPhoto').src = avatarUrl;
-                document.getElementById('mobilePhoto').src = avatarUrl;
-                document.getElementById('previewImage').src = avatarUrl;
+                // Update avatars with initial if no photo
+                const avatarUrl = userData.avatar || null;
+                const photoElements = ['sidebarPhoto', 'mobilePhoto', 'previewImage'];
+                photoElements.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (avatarUrl) {
+                        el.src = avatarUrl;
+                        el.textContent = '';
+                        el.classList.add('has-photo');
+                    } else {
+                        el.src = '';
+                        el.textContent = initial;
+                        el.classList.remove('has-photo');
+                    }
+                });
 
+                // Update names and emails
                 document.getElementById('sidebarName').textContent = fullName;
                 document.getElementById('mobileName').textContent = fullName;
                 document.getElementById('detailName').textContent = fullName;
 
-                document.getElementById('sidebarEmail').textContent = userData.email || 'No email';
-                document.getElementById('mobileEmail').textContent = userData.email || 'No email';
-                document.getElementById('detailEmail').textContent = userData.email || 'No email';
+                document.getElementById('sidebarEmail').textContent = email;
+                document.getElementById('mobileEmail').textContent = email;
+                document.getElementById('detailEmail').textContent = email;
 
                 // Form fields
                 document.getElementById('first_name').value = userData.first_name || '';
                 document.getElementById('last_name').value = userData.last_name || '';
                 document.getElementById('email').value = userData.email || '';
 
-                // Joined date (fallback)
-                document.getElementById('joinedDate').textContent = 'December 2025'; // Replace with user.date_joined if available
-
                 // Stats
                 document.getElementById('statWorkouts').textContent = statsData.total_activities || 0;
                 document.getElementById('statDistance').textContent = (statsData.total_distance || 0).toFixed(1);
                 document.getElementById('statCalories').textContent = statsData.total_calories || 0;
+
+                // Member since (static for now)
+                document.getElementById('joinedDate').textContent = 'December 2025';
 
             } catch (err) {
                 console.error('Failed to load profile/stats:', err);
@@ -317,7 +344,13 @@
         document.getElementById('profile_image').addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
-                document.getElementById('previewImage').src = URL.createObjectURL(file);
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    document.getElementById('previewImage').src = ev.target.result;
+                    document.getElementById('previewImage').textContent = '';
+                    document.getElementById('previewImage').classList.add('has-photo');
+                };
+                reader.readAsDataURL(file);
             }
         });
 
@@ -353,7 +386,6 @@
                 messageEl.textContent = 'Profile updated successfully!';
                 messageEl.style.color = '#28a745';
 
-                // Reload fresh data
                 loadProfileAndStats();
             } catch (err) {
                 console.error('Update error:', err);
@@ -362,7 +394,7 @@
             }
         });
 
-        // Load on page ready
+        // Load data
         loadProfileAndStats();
     </script>
 </body>
