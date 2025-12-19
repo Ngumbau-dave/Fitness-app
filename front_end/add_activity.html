@@ -136,55 +136,57 @@
         }
 
         // FIXED FORM SUBMISSION
-        document.getElementById('addActivityForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const messageEl = document.getElementById('form-message');
-            messageEl.textContent = 'Saving workout...';
-            messageEl.className = 'mt-3 text-center text-primary fw-bold';
+        // FIXED FORM SUBMISSION
+document.getElementById('addActivityForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const messageEl = document.getElementById('form-message');
+    messageEl.textContent = 'Saving workout...';
+    messageEl.className = 'mt-3 text-center text-primary fw-bold';
 
-            const activityType = document.getElementById('activity_type').value.trim();
-            const duration = parseInt(document.getElementById('duration').value);
-            const distanceKm = parseFloat(document.getElementById('distance_km').value) || 0;
-            const date = document.getElementById('date').value;
-            const notes = document.getElementById('notes').value.trim() || '';
+    const activityType = document.getElementById('activity_type').value.trim();
+    const duration = parseInt(document.getElementById('duration').value);
+    const distanceKm = parseFloat(document.getElementById('distance_km').value) || 0;
+    const date = document.getElementById('date').value;
+    const notes = document.getElementById('notes').value.trim() || '';
 
-            if (!activityType || isNaN(duration) || duration <= 0 || !date) {
-                messageEl.textContent = 'Please fill all required fields correctly.';
-                messageEl.className = 'mt-3 text-center text-danger fw-bold';
-                return;
-            }
+    if (!activityType || isNaN(duration) || duration <= 0 || !date) {
+        messageEl.textContent = 'Please fill all required fields correctly.';
+        messageEl.className = 'mt-3 text-center text-danger fw-bold';
+        return;
+    }
 
-            // Estimate calories_burned (prevents validation errors)
-            let calRate = 8; // default
-            const lowerType = activityType.toLowerCase();
-            if (lowerType.includes('run') || lowerType.includes('swim')) calRate = 12;
-            if (lowerType.includes('cycle')) calRate = 10;
-            if (lowerType.includes('weight') || lowerType.includes('lift')) calRate = 6;
-            if (lowerType.includes('yoga')) calRate = 4;
+    // Estimate calories_burned
+    let calRate = 8;
+    const lowerType = activityType.toLowerCase();
+    if (lowerType.includes('run') || lowerType.includes('swim')) calRate = 12;
+    if (lowerType.includes('cycle')) calRate = 10;
+    if (lowerType.includes('weight') || lowerType.includes('lift')) calRate = 6;
+    if (lowerType.includes('yoga')) calRate = 4;
 
-            const data = {
-                activity_type: activityType,
-                duration: duration,  // This is the key fix
-                distance_km: distanceKm,
-                date: date,
-                notes: notes,
-                calories_burned: Math.round(duration * calRate)  // Estimated value
-            };
+    const data = {
+        activity_type: activityType,
+        duration: duration,               // Correct field name (matches models.py)
+        distance_km: distanceKm,
+        date: date,
+        notes: notes,
+        calories_burned: Math.round(duration * calRate)
+    };
 
-            try {
-                await apiPost('/api/activities/', data);
+    try {
+        await apiPost('/api/activities/', data);
 
-                messageEl.textContent = 'Workout saved successfully! 🎉';
-                messageEl.className = 'mt-3 text-center text-success fw-bold';
+        messageEl.textContent = 'Workout saved successfully! 🎉';
+        messageEl.className = 'mt-3 text-center text-success fw-bold';
 
-                document.getElementById('addActivityForm').reset();
-                document.getElementById('date').valueAsDate = new Date();
-            } catch (err) {
-                console.error('Save failed:', err);
-                messageEl.textContent = `Failed: ${err.message || 'Invalid data'}`;
-                messageEl.className = 'mt-3 text-center text-danger fw-bold';
-            }
-        });
+        document.getElementById('addActivityForm').reset();
+        document.getElementById('date').valueAsDate = new Date();
+
+    } catch (err) {
+        console.error('Save failed:', err);
+        messageEl.textContent = `Failed: ${err.message || 'Check fields and try again'}`;
+        messageEl.className = 'mt-3 text-center text-danger fw-bold';
+    }
+});
 
         loadUserProfile();
     </script>
