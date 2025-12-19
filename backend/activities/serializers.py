@@ -10,12 +10,12 @@ class ActivitySerializer(serializers.ModelSerializer):
 
 # Your existing User Serializer (unchanged)
 class UserSerializer(serializers.ModelSerializer):
-    avatar = serializers.ImageField(source='profile.avatar', required=False)
+    avatar = serializers.ImageField(source='profile.avatar', required=False, allow_null=True)
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'avatar']
-        read_only_fields = ['id', 'username']
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'avatar', 'date_joined']  # Added date_joined
+        read_only_fields = ['id', 'username', 'date_joined']  # Make it read-only
 
     def update(self, instance, validated_data):
         profile_data = validated_data.pop('profile', {})
