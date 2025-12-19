@@ -139,6 +139,8 @@
         // FIXED FORM SUBMISSION
 // FIXED FORM SUBMISSION - matches your models.py exactly
 // FIXED FORM SUBMISSION - maps to short codes
+// FIXED: Map full names to short codes for backend
+// FIXED: Map full names to short codes for backend
 document.getElementById('addActivityForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const messageEl = document.getElementById('form-message');
@@ -157,13 +159,13 @@ document.getElementById('addActivityForm').addEventListener('submit', async (e) 
         return;
     }
 
-    // Map full name to short code
+    // Map display name to short code
     const typeMap = {
         'Running': 'RUN',
         'Cycling': 'CYC',
+        'Swimming': 'SWM',
         'Weightlifting': 'GYM',
         'Yoga': 'YOG',
-        'Swimming': 'SWM',
         'Walking': 'OTH',
         'Other': 'OTH'
     };
@@ -171,14 +173,13 @@ document.getElementById('addActivityForm').addEventListener('submit', async (e) 
 
     // Estimate calories
     let calRate = 8;
-    const lowerType = fullType.toLowerCase();
-    if (lowerType.includes('run') || lowerType.includes('swim')) calRate = 12;
-    if (lowerType.includes('cycle')) calRate = 10;
-    if (lowerType.includes('weight') || lowerType.includes('lift')) calRate = 6;
-    if (lowerType.includes('yoga')) calRate = 4;
+    if (fullType.toLowerCase().includes('run') || fullType.toLowerCase().includes('swim')) calRate = 12;
+    if (fullType.toLowerCase().includes('cycle')) calRate = 10;
+    if (fullType.toLowerCase().includes('weight') || fullType.toLowerCase().includes('lift')) calRate = 6;
+    if (fullType.toLowerCase().includes('yoga')) calRate = 4;
 
     const data = {
-        activity_type: activityType,          // Short code for backend
+        activity_type: activityType,  // Short code
         duration: duration,
         distance_km: distanceKm,
         date: date,
@@ -197,7 +198,7 @@ document.getElementById('addActivityForm').addEventListener('submit', async (e) 
 
     } catch (err) {
         console.error('Save failed:', err);
-        messageEl.textContent = `Failed: ${err.message || 'Check fields and try again'}`;
+        messageEl.textContent = `Failed: ${err.message || 'Invalid data'}`;
         messageEl.className = 'mt-3 text-center text-danger fw-bold';
     }
 });
