@@ -13,9 +13,43 @@
         .logo { font-size: 32px; font-weight: bold; color: #007bff; }
         .logo span { color: #28a745; }
         .main-content { flex: 1; padding-bottom: 70px; }
-        .plan-card { background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); padding: 30px; margin: 20px auto; max-width: 900px; }
+        .plan-card { background: white; border-radius: 16px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); padding: 35px; margin: 20px auto; max-width: 900px; }
 
-        /* Bottom Nav & Sidebar */
+        .level-badge { 
+            background: linear-gradient(135deg, #007bff, #0056b3); 
+            color: white; 
+            padding: 8px 18px; 
+            border-radius: 30px; 
+            font-weight: bold;
+            font-size: 1rem;
+        }
+        .focus-badge { 
+            background: #e9ecef; 
+            color: #495057; 
+            padding: 8px 18px; 
+            border-radius: 30px; 
+            font-weight: 500;
+        }
+
+        .day-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .day-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,123,255,0.15);
+        }
+        .day-name { font-size: 1.3rem; font-weight: bold; color: #007bff; }
+        .workout-title { font-size: 1.1rem; font-weight: 600; color: #28a745; }
+        .workout-details { color: #6c757d; font-style: italic; }
+
+        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #007bff; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Sidebar & Nav (same as before) */
         .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); padding: 10px 0; z-index: 1000; }
         .bottom-nav a { color: #6c757d; text-decoration: none; font-size: 12px; }
         .bottom-nav a.active { color: #007bff; }
@@ -29,13 +63,6 @@
         @media (max-width: 767px) { .sidebar { display: none; } .main-content { margin-left: 0; padding: 20px; } }
         @media (min-width: 768px) { .bottom-nav { display: none; } .main-content { margin-left: 250px; padding: 40px; } }
         @media (min-width: 1200px) { .main-content { padding: 60px; } }
-
-        .day-row { border-bottom: 1px solid #eee; padding: 18px 0; }
-        .day-row:last-child { border-bottom: none; }
-        .day { font-weight: bold; color: #007bff; font-size: 1.1rem; }
-        .workout { color: #28a745; font-weight: 600; }
-        .duration { color: #6c757d; font-style: italic; }
-        .level-badge { background: #007bff; color: white; padding: 5px 12px; border-radius: 20px; font-size: 0.9rem; }
     </style>
 </head>
 <body>
@@ -65,21 +92,25 @@
 
         <div class="container">
             <div class="plan-card">
-                <h3 class="text-center mb-3" id="plan-greeting">Your Personalized Training Plan</h3>
-                <p class="text-center text-muted mb-4" id="plan-subtitle">Loading your custom weekly plan...</p>
-
-                <div class="text-center mb-4">
-                    <span class="level-badge" id="level-badge">Beginner</span>
-                    <span class="ms-3 text-muted" id="focus-text">General Fitness</span>
+                <h2 class="text-center mb-3" id="plan-greeting">Your Personalized Training Plan</h2>
+                <div class="text-center mb-5">
+                    <span class="level-badge" id="level-badge">Loading...</span>
+                    <span class="focus-badge ms-3" id="focus-badge">Detecting Focus...</span>
                 </div>
 
-                <div id="plan-content">
-                    <!-- Dynamic weekly plan will be injected here -->
+                <div class="text-center mb-4" id="loading-spinner">
+                    <div class="spinner mx-auto"></div>
+                    <p class="mt-3 text-muted">Analyzing your workouts to create the perfect plan...</p>
                 </div>
 
-                <div class="text-center mt-5">
+                <div id="plan-content" style="display: none;">
+                    <!-- Dynamic plan cards will appear here -->
+                </div>
+
+                <div class="text-center mt-4">
                     <small class="text-muted">
-                        This plan is generated from your activity history. Keep logging workouts to make it even smarter! 💪
+                        <i class="fas fa-info-circle me-1"></i>
+                        Your plan updates automatically as you log more workouts. Keep pushing! 🔥
                     </small>
                 </div>
             </div>
@@ -107,7 +138,6 @@
             window.location.href = 'index.html';
         }
 
-        // Load user profile for sidebar and greeting
         async function loadUserProfile() {
             try {
                 const userData = await apiGet('/api/profile/');
@@ -120,103 +150,110 @@
                     document.getElementById('sidebar-avatar').src = userData.avatar + '?t=' + Date.now();
                 }
 
-                document.getElementById('plan-greeting').textContent = `${fullName}'s Personalized Training Plan`;
+                document.getElementById('plan-greeting').textContent = `${fullName}'s Training Plan`;
             } catch (err) {
                 console.error('Profile load failed:', err);
             }
         }
 
-        // Generate dynamic training plan
         async function generateTrainingPlan() {
+            const loading = document.getElementById('loading-spinner');
+            const content = document.getElementById('plan-content');
+
             try {
                 const [stats, activities] = await Promise.all([
-                    apiGet('/api/stats/'),
-                    apiGet('/api/activities/')
+                    apiGet('/api/stats/').catch(() => ({ total_activities: 0, total_distance: 0 })),
+                    apiGet('/api/activities/').catch(() => [])
                 ]);
 
                 const totalWorkouts = stats.total_activities || 0;
                 const totalDistance = stats.total_distance || 0;
 
-                // Determine fitness level
+                // Determine level
                 let level = 'Beginner';
-                if (totalWorkouts >= 30) level = 'Intermediate';
-                if (totalWorkouts >= 70) level = 'Advanced';
+                if (totalWorkouts >= 20) level = 'Intermediate';
+                if (totalWorkouts >= 50) level = 'Advanced';
 
-                // Determine primary focus
+                // Determine focus
                 const typeCount = {};
                 activities.forEach(a => {
-                    const type = a.activity_type;
-                    typeCount[type] = (typeCount[type] || 0) + 1;
+                    typeCount[a.activity_type] = (typeCount[a.activity_type] || 0) + 1;
                 });
-
                 let focus = 'General Fitness';
                 if (Object.keys(typeCount).length > 0) {
                     const dominant = Object.keys(typeCount).reduce((a, b) => typeCount[a] > typeCount[b] ? a : b);
-                    const map = { 'RUN': 'Running', 'GYM': 'Strength Training', 'CYC': 'Cycling', 'SWM': 'Swimming', 'YOG': 'Yoga' };
-                    focus = map[dominant] || 'General Fitness';
+                    const focusMap = { 'RUN': 'Running', 'GYM': 'Strength', 'CYC': 'Cycling', 'SWM': 'Swimming', 'YOG': 'Yoga' };
+                    focus = focusMap[dominant] || 'General Fitness';
                 }
 
-                // Update UI
+                // Update badges
                 document.getElementById('level-badge').textContent = level;
-                document.getElementById('focus-text').textContent = focus;
-                document.getElementById('plan-subtitle').textContent = 
-                    `Tailored ${level} plan for ${focus} • Based on ${totalWorkouts} workouts & ${totalDistance.toFixed(1)} km`;
+                document.getElementById('focus-badge').textContent = focus;
 
                 // Generate plan
                 const plan = getWeeklyPlan(level, focus);
-                const content = document.getElementById('plan-content');
                 content.innerHTML = '';
 
                 const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
                 plan.forEach((dayPlan, i) => {
-                    const row = document.createElement('div');
-                    row.className = 'day-row d-flex justify-content-between align-items-center';
-                    row.innerHTML = `
-                        <div>
-                            <div class="day">${days[i]}</div>
-                        </div>
-                        <div class="text-end">
-                            <div class="workout">${dayPlan.activity}</div>
-                            <div class="duration">${dayPlan.details}</div>
+                    const card = document.createElement('div');
+                    card.className = 'day-card';
+                    card.innerHTML = `
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="day-name">${days[i]}</div>
+                            </div>
+                            <div class="text-end">
+                                <div class="workout-title">${dayPlan.activity}</div>
+                                <div class="workout-details">${dayPlan.details}</div>
+                            </div>
                         </div>
                     `;
-                    content.appendChild(row);
+                    content.appendChild(card);
                 });
 
+                loading.style.display = 'none';
+                content.style.display = 'block';
+
             } catch (err) {
-                console.error('Failed to generate plan:', err);
-                document.getElementById('plan-content').innerHTML = 
-                    '<p class="text-center text-danger">Unable to load your personalized plan. Please try again later.</p>';
+                console.error('Plan generation failed:', err);
+                loading.innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="fas fa-running fa-4x text-primary mb-4"></i>
+                        <h5>Start Your Journey!</h5>
+                        <p class="text-muted">Log your first workout to get a personalized training plan.</p>
+                        <a href="add_activity.html" class="btn btn-primary mt-3">Log First Workout</a>
+                    </div>
+                `;
             }
         }
 
-        // Weekly plan generator
         function getWeeklyPlan(level, focus) {
             const plans = {
                 Beginner: {
                     'Running': [
-                        { activity: 'Easy Run/Walk', details: '20–30 min' },
-                        { activity: 'Rest or Light Yoga', details: 'Stretch & recover' },
+                        { activity: 'Easy Run/Walk', details: '20–30 min • Keep it light' },
+                        { activity: 'Rest or Yoga', details: 'Recovery day' },
                         { activity: 'Easy Run', details: '25 min' },
-                        { activity: 'Rest', details: '-' },
-                        { activity: 'Interval Walk/Run', details: '4 × 2 min run' },
+                        { activity: 'Rest', details: 'Full recovery' },
+                        { activity: 'Interval Run', details: '4 × 1 min run / 2 min walk' },
                         { activity: 'Long Easy Run', details: '35 min' },
-                        { activity: 'Rest', details: 'Active recovery' }
+                        { activity: 'Rest', details: 'Enjoy your progress!' }
                     ],
-                    'Strength Training': [
-                        { activity: 'Full Body Workout', details: '3 sets, bodyweight' },
-                        { activity: 'Rest or Walk', details: '20 min light' },
-                        { activity: 'Upper Body Focus', details: 'Push-ups, rows' },
+                    'Strength': [
+                        { activity: 'Full Body Circuit', details: '3 rounds • Bodyweight only' },
+                        { activity: 'Rest or Walk', details: 'Light movement' },
+                        { activity: 'Upper Body Focus', details: 'Push-ups, planks' },
                         { activity: 'Rest', details: '-' },
                         { activity: 'Lower Body Focus', details: 'Squats, lunges' },
-                        { activity: 'Light Cardio', details: '30 min walk/run' },
+                        { activity: 'Light Cardio', details: '30 min walk' },
                         { activity: 'Rest', details: '-' }
                     ],
                     'General Fitness': [
-                        { activity: 'Brisk Walk or Easy Run', details: '30 min' },
-                        { activity: 'Bodyweight Strength', details: '3 rounds' },
-                        { activity: 'Rest or Yoga', details: 'Light stretch' },
-                        { activity: 'Cardio', details: '25 min' },
+                        { activity: 'Brisk Walk', details: '30 min' },
+                        { activity: 'Bodyweight Strength', details: 'Push-ups, squats' },
+                        { activity: 'Rest or Stretch', details: 'Yoga optional' },
+                        { activity: 'Cardio', details: '25 min activity' },
                         { activity: 'Rest', details: '-' },
                         { activity: 'Long Activity', details: '45 min walk/run' },
                         { activity: 'Rest', details: '-' }
@@ -224,41 +261,32 @@
                 },
                 Intermediate: {
                     'Running': [
-                        { activity: 'Easy Run', details: '30 min' },
-                        { activity: 'Tempo Run', details: '20 min at pace' },
-                        { activity: 'Rest or Cross-Train', details: 'Swim/Yoga' },
-                        { activity: 'Interval Run', details: '6 × 400m' },
-                        { activity: 'Easy Run', details: '35 min' },
-                        { activity: 'Long Run', details: '60–70 min' },
-                        { activity: 'Rest', details: '-' }
-                    ],
-                    'Strength Training': [
-                        { activity: 'Push Day', details: 'Bench, shoulders' },
-                        { activity: 'Pull Day', details: 'Rows, pull-ups' },
-                        { activity: 'Rest', details: '-' },
-                        { activity: 'Leg Day', details: 'Squats, deadlifts' },
-                        { activity: 'Full Body', details: 'Compound lifts' },
-                        { activity: 'Active Recovery', details: 'Light cardio' },
-                        { activity: 'Rest', details: '-' }
+                        { activity: 'Easy Run', details: '35 min warm-up' },
+                        { activity: 'Tempo Run', details: '25 min at moderate pace' },
+                        { activity: 'Rest or Yoga', details: 'Recovery' },
+                        { activity: 'Intervals', details: '6 × 400m fast' },
+                        { activity: 'Easy Run', details: '40 min' },
+                        { activity: 'Long Run', details: '70 min' },
+                        { activity: 'Rest', details: 'Recover well' }
                     ]
                 },
                 Advanced: {
                     'Running': [
-                        { activity: 'Speed Work', details: '8 × 400m' },
-                        { activity: 'Easy Run', details: '40 min' },
-                        { activity: 'Hill Repeats', details: '8 × 30 sec' },
-                        { activity: 'Tempo Run', details: '45 min' },
-                        { activity: 'Easy Run', details: '30 min' },
-                        { activity: 'Long Run', details: '90+ min' },
-                        { activity: 'Rest or Yoga', details: '-' }
+                        { activity: 'Speed Work', details: '10 × 400m' },
+                        { activity: 'Easy Recovery Run', details: '40 min' },
+                        { activity: 'Hill Repeats', details: '8 × 45 sec' },
+                        { activity: 'Tempo Run', details: '50 min' },
+                        { activity: 'Easy Run', details: '35 min' },
+                        { activity: 'Long Run', details: '90–120 min' },
+                        { activity: 'Rest', details: 'Full recovery' }
                     ]
                 }
             };
 
-            return plans[level]?.[focus] || plans.Beginner['General Fitness'];
+            return (plans[level] && plans[level][focus]) || plans.Beginner['General Fitness'];
         }
 
-        // Load everything on page ready
+        // Load on start
         loadUserProfile();
         generateTrainingPlan();
     </script>
