@@ -285,7 +285,7 @@
                 const initial = fullName.charAt(0).toUpperCase() || 'U';
                 const email = userData.email || 'No email set';
 
-                // Avatar handling (with full URL + cache bust)
+                // Avatar handling (full URL + cache bust)
                 let avatarUrl = userData.avatar 
                     ? (userData.avatar.startsWith('http') ? userData.avatar : BASE_URL + userData.avatar)
                     : null;
@@ -304,7 +304,7 @@
                     }
                 });
 
-                // Update ALL name and email displays
+                // Update ALL name and email displays (including accordion)
                 ['sidebarName', 'mobileName', 'detailName'].forEach(id => {
                     document.getElementById(id).textContent = fullName;
                 });
@@ -318,17 +318,19 @@
                 document.getElementById('last_name').value = userData.last_name || '';
                 document.getElementById('email').value = userData.email || '';
 
-                // Stats
+                // Stats in accordion
                 document.getElementById('statWorkouts').textContent = statsData.total_activities || 0;
                 document.getElementById('statDistance').textContent = (statsData.total_distance || 0).toFixed(1);
                 document.getElementById('statCalories').textContent = statsData.total_calories || 0;
 
                 // DYNAMIC Member Since
-                let joinedText = 'Member since unknown';
+                let joinedText = 'Loading...';
                 if (userData.date_joined) {
                     const date = new Date(userData.date_joined);
                     const options = { year: 'numeric', month: 'long', day: 'numeric' };
-                    joinedText = `Member since ${date.toLocaleDateString('en-US', options)}`;
+                    joinedText = date.toLocaleDateString('en-US', options);
+                } else {
+                    joinedText = 'Unknown';
                 }
                 document.getElementById('joinedDate').textContent = joinedText;
 
@@ -337,7 +339,7 @@
             }
         }
 
-        // Image preview (local)
+        // Image preview
         document.getElementById('previewImage').onclick = () => document.getElementById('profile_image').click();
 
         document.getElementById('profile_image').addEventListener('change', (e) => {
@@ -353,7 +355,7 @@
             }
         });
 
-        // UPDATE WITH TOKEN REFRESH + DELAYED RELOAD
+        // UPDATE WITH TOKEN REFRESH
         document.getElementById('profileForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const messageEl = document.getElementById('updateMessage');
@@ -400,13 +402,12 @@
                     response = await sendUpdate(accessToken);
                 }
 
-                if (!response.ok) throw new Error('Update failed on server');
+                if (!response.ok) throw new Error('Update failed');
 
                 messageEl.textContent = 'Profile updated successfully!';
                 messageEl.style.color = '#28a745';
 
-                // Give server time to process image upload
-                setTimeout(loadProfileAndStats, 2000);
+                setTimeout(loadProfileAndStats, 1500);
 
             } catch (err) {
                 messageEl.textContent = 'Update failed: ' + (err.message || 'Try again');
