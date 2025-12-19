@@ -268,160 +268,164 @@
     <script src="assets/js/api.js"></script>
     <script src="assets/js/auth.js"></script>
 
-    <script>
-        // Auth Guard
-        if (!localStorage.getItem('access_token')) {
+   <script>
+    // Auth Guard
+    if (!localStorage.getItem('access_token')) {
+        window.location.href = 'index.html';
+    }
+
+    // Global 401 handler
+    window.addEventListener('unhandledrejection', event => {
+        if (event.reason?.message?.includes('401')) {
+            localStorage.clear();
             window.location.href = 'index.html';
         }
+    });
 
-        // Handle 401 globally
-        window.addEventListener('unhandledrejection', event => {
-            if (event.reason?.message?.includes('401')) {
-                localStorage.clear();
-                window.location.href = 'index.html';
-            }
-        });
+    async function loadProfileAndStats() {
+        try {
+            const [userData, statsData] = await Promise.all([
+                apiGet('/api/profile/'),
+                apiGet('/api/stats/')
+            ]);
 
-        async function loadProfileAndStats() {
-            try {
-                const [userData, statsData] = await Promise.all([
-                    apiGet('/api/profile/'),
-                    apiGet('/api/stats/')
-                ]);
+            const fullName = `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || userData.username || 'User';
+            const initial = fullName.charAt(0).toUpperCase() || 'U';
+            const email = userData.email || 'No email set';
 
-                const fullName = `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || userData.username || 'User';
-                const initial = (fullName.charAt(0).toUpperCase() || 'U');
-                const email = userData.email || 'No email set';
+            // Full avatar URL + cache busting
+            let avatarUrl = userData.avatar 
+                ? (userData.avatar.startsWith('http') ? userData.avatar : BASE_URL + userData.avatar)
+                : null;
 
-                // Update avatars with initial if no photo
-                const avatarUrl = userData.avatar || null;
-                const photoElements = ['sidebarPhoto', 'mobilePhoto', 'previewImage'];
-                photoElements.forEach(id => {
-                    const el = document.getElementById(id);
-                    if (avatarUrl) {
-                        el.src = avatarUrl + '?t=' + Date.now();  // Cache bust
-                        el.textContent = '';
-                        el.classList.add('has-photo');
-                    } else {
-                        el.src = '';
-                        el.textContent = initial;
-                        el.classList.remove('has-photo');
-                    }
-                });
+            const photoElements = ['sidebarPhoto', 'mobilePhoto', 'previewImage'];
+            photoElements.forEach(id => {
+                const el = document.getElementById(id);
+                if (avatarUrl) {
+                    el.src = avatarUrl + '?t=' + Date.now();
+                    el.textContent = '';
+                    el.classList.add('has-photo');
+                } else {
+                    el.src = '';
+                    el.textContent = initial;
+                    el.classList.remove('has-photo');
+                }
+            });
 
-                // Update names and emails
-                document.getElementById('sidebarName').textContent = fullName;
-                document.getElementById('mobileName').textContent = fullName;
-                document.getElementById('detailName').textContent = fullName;
+            // Update text
+            document.getElementById('sidebarName').textContent = fullName;
+            document.getElementById('mobileName').textContent = fullName;
+            document.getElementById('detailName').textContent = fullName;
 
-                document.getElementById('sidebarEmail').textContent = email;
-                document.getElementById('mobileEmail').textContent = email;
-                document.getElementById('detailEmail').textContent = email;
+            document.getElementById('sidebarEmail').textContent = email;
+            document.getElementById('mobileEmail').textContent = email;
+            document.getElementById('detailEmail').textContent = email;
 
-                // Form fields
-                document.getElementById('first_name').value = userData.first_name || '';
-                document.getElementById('last_name').value = userData.last_name || '';
-                document.getElementById('email').value = userData.email || '';
+            // Form fields
+            document.getElementById('first_name').value = userData.first_name || '';
+            document.getElementById('last_name').value = userData.last_name || '';
+            document.getElementById('email').value = userData.email || '';
 
-                // Stats
-                document.getElementById('statWorkouts').textContent = statsData.total_activities || 0;
-                document.getElementById('statDistance').textContent = (statsData.total_distance || 0).toFixed(1);
-                document.getElementById('statCalories').textContent = statsData.total_calories || 0;
+            // Stats
+            document.getElementById('statWorkouts').textContent = statsData.total_activities || 0;
+            document.getElementById('statDistance').textContent = (statsData.total_distance || 0).toFixed(1);
+            document.getElementById('statCalories').textContent = statsData.total_calories || 0;
 
-                document.getElementById('joinedDate').textContent = 'December 2025';
+            document.getElementById('joinedDate').textContent = 'December 2025';
 
-            } catch (err) {
-                console.error('Failed to load profile/stats:', err);
-            }
+        } catch (err) {
+            console.error('Failed to load profile/stats:', err);
         }
+    }
 
-        // Image preview
-        document.getElementById('previewImage').onclick = () => {
-            document.getElementById('profile_image').click();
+    // Image preview
+    document.getElementById('previewImage').onclick = () => {
+        document.getElementById('profile_image').click();
+    };
+
+    document.getElementById('profile_image').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                document.getElementById('previewImage').src = ev.target.result;
+                document.getElementById('previewImage').textContent = '';
+                document.getElementById('previewImage').classList.add('has-photo');
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // FIXED UPDATE WITH TOKEN REFRESH
+    document.getElementById('profileForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const messageEl = document.getElementById('updateMessage');
+        messageEl.textContent = 'Updating...';
+        messageEl.style.color = '#007bff';
+
+        const formData = new FormData();
+        formData.append('first_name', document.getElementById('first_name').value.trim());
+        formData.append('last_name', document.getElementById('last_name').value.trim());
+        formData.append('email', document.getElementById('email').value.trim());
+
+        const imageFile = document.getElementById('profile_image').files[0];
+        if (imageFile) formData.append('avatar', imageFile);
+
+        let accessToken = localStorage.getItem('access_token');
+
+        const sendUpdate = async (token) => {
+            return fetch(BASE_URL + '/api/profile/', {
+                method: 'PUT',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
         };
 
-        document.getElementById('profile_image').addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (ev) => {
-                    document.getElementById('previewImage').src = ev.target.result;
-                    document.getElementById('previewImage').textContent = '';
-                    document.getElementById('previewImage').classList.add('has-photo');
-                };
-                reader.readAsDataURL(file);
-            }
-        });
+        try {
+            let response = await sendUpdate(accessToken);
 
-        // FIXED: Profile update with automatic token refresh
-        document.getElementById('profileForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const messageEl = document.getElementById('updateMessage');
-            messageEl.textContent = 'Updating...';
-            messageEl.style.color = '#007bff';
+            if (response.status === 401) {
+                messageEl.textContent = 'Session expired, refreshing token...';
+                const refreshToken = localStorage.getItem('refresh_token');
+                if (!refreshToken) throw new Error('No refresh token. Please log in again.');
 
-            const formData = new FormData();
-            formData.append('first_name', document.getElementById('first_name').value.trim());
-            formData.append('last_name', document.getElementById('last_name').value.trim());
-            formData.append('email', document.getElementById('email').value.trim());
-
-            const imageFile = document.getElementById('profile_image').files[0];
-            if (imageFile) formData.append('avatar', imageFile);
-
-            let accessToken = localStorage.getItem('access_token');
-
-            const makeRequest = async (token) => {
-                return await fetch(BASE_URL + '/api/profile/', {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: formData
+                const refreshResp = await fetch(BASE_URL + '/api/token/refresh/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ refresh: refreshToken })
                 });
-            };
 
-            try {
-                let response = await makeRequest(accessToken);
+                if (!refreshResp.ok) throw new Error('Refresh failed. Logging out...');
 
-                // If token expired, refresh and retry
-                if (response.status === 401) {
-                    messageEl.textContent = 'Token expired, refreshing...';
-                    const refreshToken = localStorage.getItem('refresh_token');
-                    if (!refreshToken) throw new Error('No refresh token. Please log in again.');
+                const refreshData = await refreshResp.json();
+                localStorage.setItem('access_token', refreshData.access);
+                accessToken = refreshData.access;
 
-                    const refreshResponse = await fetch(BASE_URL + '/api/token/refresh/', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ refresh: refreshToken })
-                    });
+                response = await sendUpdate(accessToken);
+            }
 
-                    if (!refreshResponse.ok) {
-                        throw new Error('Session expired. Logging out...');
-                    }
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData.detail || 'Update failed');
+            }
 
-                    const refreshData = await refreshResponse.json();
-                    localStorage.setItem('access_token', refreshData.access);
-                    accessToken = refreshData.access;
+            messageEl.textContent = 'Profile updated successfully!';
+            messageEl.style.color = '#28a745';
 
-                    // Retry update
-                    response = await makeRequest(accessToken);
-                }
+            setTimeout(loadProfileAndStats, 1000);
 
-                if (!response.ok) {
-                    const errorData = await response.json().catch(() => ({}));
-                    throw new Error(errorData.detail || 'Update failed');
-                }
+        } catch (err) {
+            console.error('Update error:', err);
+            messageEl.textContent = 'Update failed: ' + err.message;
+            messageEl.style.color = '#dc3545';
 
-                messageEl.textContent = 'Profile updated successfully!';
-                messageEl.style.color = '#28a745';
+            if (err.message.includes('Refresh failed') || err.message.includes('expired')) {
+                localStorage.clear();
+                setTimeout(() => window.location.href = 'index.html', 2000);
+            }
+        }
+    });
 
-                // Reload fresh data
-                setTimeout(loadProfileAndStats, 800);  // Small delay for server sync
-
-            } catch (err) {
-                console.error('Update error:', err);
-                messageEl.textContent = 'Update failed: ' + err.message;
-                messageEl.style.color = '#dc3545';
-
-                // Force logout if refresh failed
-                if (err.message.includes('Session expired') || err.message.includes('refresh
+    // Initial load
+    loadProfileAndStats();
+</script>
