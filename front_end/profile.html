@@ -324,13 +324,11 @@
                 document.getElementById('statCalories').textContent = statsData.total_calories || 0;
 
                 // DYNAMIC Member Since
-                let joinedText = 'Loading...';
+                let joinedText = 'Member since unknown';
                 if (userData.date_joined) {
                     const date = new Date(userData.date_joined);
                     const options = { year: 'numeric', month: 'long', day: 'numeric' };
-                    joinedText = date.toLocaleDateString('en-US', options);
-                } else {
-                    joinedText = 'Unknown';
+                    joinedText = `Member since ${date.toLocaleDateString('en-US', options)}`;
                 }
                 document.getElementById('joinedDate').textContent = joinedText;
 
