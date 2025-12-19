@@ -275,62 +275,64 @@
     }
 
     async function loadProfileAndStats() {
-        try {
-            const [userData, statsData] = await Promise.all([
-                apiGet('/api/profile/'),
-                apiGet('/api/stats/')
-            ]);
+    try {
+        const [userData, statsData] = await Promise.all([
+            apiGet('/api/profile/'),
+            apiGet('/api/stats/')
+        ]);
 
-            const fullName = `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || userData.username || 'User';
-            const initial = fullName.charAt(0).toUpperCase() || 'U';
-            const email = userData.email || 'No email set';
+        const fullName = `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || userData.username || 'User';
+        const initial = fullName.charAt(0).toUpperCase() || 'U';
+        const email = userData.email || 'No email set';
 
-            // CRITICAL: Build full absolute URL for avatar (fixes deployed image loading)
-            let avatarUrl = null;
-            if (userData.avatar) {
-                avatarUrl = userData.avatar.startsWith('http') 
-                    ? userData.avatar 
-                    : BASE_URL + userData.avatar;
-            }
-
-            const photoElements = ['sidebarPhoto', 'mobilePhoto', 'previewImage'];
-            photoElements.forEach(id => {
-                const el = document.getElementById(id);
-                if (avatarUrl) {
-                    // Cache bust + full URL
-                    el.src = avatarUrl + '?t=' + Date.now();
-                    el.textContent = '';
-                    el.classList.add('has-photo');
-                } else {
-                    el.src = '';
-                    el.textContent = initial;
-                    el.classList.remove('has-photo');
-                }
-            });
-
-            // Update all text fields
-            ['sidebarName', 'mobileName', 'detailName'].forEach(id => {
-                document.getElementById(id).textContent = fullName;
-            });
-
-            ['sidebarEmail', 'mobileEmail', 'detailEmail'].forEach(id => {
-                document.getElementById(id).textContent = email;
-            });
-
-            // Refill form
-            document.getElementById('first_name').value = userData.first_name || '';
-            document.getElementById('last_name').value = userData.last_name || '';
-            document.getElementById('email').value = userData.email || '';
-
-            // Stats
-            document.getElementById('statWorkouts').textContent = statsData.total_activities || 0;
-            document.getElementById('statDistance').textContent = (statsData.total_distance || 0).toFixed(1);
-            document.getElementById('statCalories').textContent = statsData.total_calories || 0;
-
-        } catch (err) {
-            console.error('Load failed:', err);
+        // CRITICAL FIX: Build full absolute URL for avatar
+        let avatarUrl = null;
+        if (userData.avatar) {
+            // If it's already full URL (http/https), use it
+            // Otherwise, prepend BASE_URL
+            avatarUrl = userData.avatar.startsWith('http') 
+                ? userData.avatar 
+                : BASE_URL + userData.avatar;
         }
+
+        const photoElements = ['sidebarPhoto', 'mobilePhoto', 'previewImage'];
+        photoElements.forEach(id => {
+            const el = document.getElementById(id);
+            if (avatarUrl) {
+                // Full URL + cache busting
+                el.src = avatarUrl + '?t=' + Date.now();
+                el.textContent = '';
+                el.classList.add('has-photo');
+            } else {
+                el.src = '';
+                el.textContent = initial;
+                el.classList.remove('has-photo');
+            }
+        });
+
+        // Update text fields
+        ['sidebarName', 'mobileName', 'detailName'].forEach(id => {
+            document.getElementById(id).textContent = fullName;
+        });
+
+        ['sidebarEmail', 'mobileEmail', 'detailEmail'].forEach(id => {
+            document.getElementById(id).textContent = email;
+        });
+
+        // Refill form
+        document.getElementById('first_name').value = userData.first_name || '';
+        document.getElementById('last_name').value = userData.last_name || '';
+        document.getElementById('email').value = userData.email || '';
+
+        // Stats
+        document.getElementById('statWorkouts').textContent = statsData.total_activities || 0;
+        document.getElementById('statDistance').textContent = (statsData.total_distance || 0).toFixed(1);
+        document.getElementById('statCalories').textContent = statsData.total_calories || 0;
+
+    } catch (err) {
+        console.error('Failed to load profile:', err);
     }
+}
 
     // Image preview (local)
     document.getElementById('previewImage').onclick = () => document.getElementById('profile_image').click();
