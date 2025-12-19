@@ -285,21 +285,15 @@
         const initial = fullName.charAt(0).toUpperCase() || 'U';
         const email = userData.email || 'No email set';
 
-        // CRITICAL FIX: Build full absolute URL for avatar
-        let avatarUrl = null;
-        if (userData.avatar) {
-            // If it's already full URL (http/https), use it
-            // Otherwise, prepend BASE_URL
-            avatarUrl = userData.avatar.startsWith('http') 
-                ? userData.avatar 
-                : BASE_URL + userData.avatar;
-        }
+        // Avatar handling (with full URL + cache bust)
+        let avatarUrl = userData.avatar 
+            ? (userData.avatar.startsWith('http') ? userData.avatar : BASE_URL + userData.avatar)
+            : null;
 
         const photoElements = ['sidebarPhoto', 'mobilePhoto', 'previewImage'];
         photoElements.forEach(id => {
             const el = document.getElementById(id);
             if (avatarUrl) {
-                // Full URL + cache busting
                 el.src = avatarUrl + '?t=' + Date.now();
                 el.textContent = '';
                 el.classList.add('has-photo');
@@ -310,7 +304,7 @@
             }
         });
 
-        // Update text fields
+        // Update ALL name and email displays
         ['sidebarName', 'mobileName', 'detailName'].forEach(id => {
             document.getElementById(id).textContent = fullName;
         });
@@ -319,7 +313,7 @@
             document.getElementById(id).textContent = email;
         });
 
-        // Refill form
+        // Form fields
         document.getElementById('first_name').value = userData.first_name || '';
         document.getElementById('last_name').value = userData.last_name || '';
         document.getElementById('email').value = userData.email || '';
@@ -329,8 +323,11 @@
         document.getElementById('statDistance').textContent = (statsData.total_distance || 0).toFixed(1);
         document.getElementById('statCalories').textContent = statsData.total_calories || 0;
 
+        // Joined date (static for now)
+        document.getElementById('joinedDate').textContent = 'Member since December 2025';
+
     } catch (err) {
-        console.error('Failed to load profile:', err);
+        console.error('Failed to load profile/stats:', err);
     }
 }
 
