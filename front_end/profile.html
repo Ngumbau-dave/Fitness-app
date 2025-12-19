@@ -274,14 +274,6 @@
         window.location.href = 'index.html';
     }
 
-    // Global 401 handler
-    window.addEventListener('unhandledrejection', event => {
-        if (event.reason?.message?.includes('401')) {
-            localStorage.clear();
-            window.location.href = 'index.html';
-        }
-    });
-
     async function loadProfileAndStats() {
         try {
             const [userData, statsData] = await Promise.all([
@@ -293,15 +285,19 @@
             const initial = fullName.charAt(0).toUpperCase() || 'U';
             const email = userData.email || 'No email set';
 
-            // Full avatar URL + cache busting
-            let avatarUrl = userData.avatar 
-                ? (userData.avatar.startsWith('http') ? userData.avatar : BASE_URL + userData.avatar)
-                : null;
+            // CRITICAL: Build full absolute URL for avatar (fixes deployed image loading)
+            let avatarUrl = null;
+            if (userData.avatar) {
+                avatarUrl = userData.avatar.startsWith('http') 
+                    ? userData.avatar 
+                    : BASE_URL + userData.avatar;
+            }
 
             const photoElements = ['sidebarPhoto', 'mobilePhoto', 'previewImage'];
             photoElements.forEach(id => {
                 const el = document.getElementById(id);
                 if (avatarUrl) {
+                    // Cache bust + full URL
                     el.src = avatarUrl + '?t=' + Date.now();
                     el.textContent = '';
                     el.classList.add('has-photo');
@@ -312,16 +308,16 @@
                 }
             });
 
-            // Update text
-            document.getElementById('sidebarName').textContent = fullName;
-            document.getElementById('mobileName').textContent = fullName;
-            document.getElementById('detailName').textContent = fullName;
+            // Update all text fields
+            ['sidebarName', 'mobileName', 'detailName'].forEach(id => {
+                document.getElementById(id).textContent = fullName;
+            });
 
-            document.getElementById('sidebarEmail').textContent = email;
-            document.getElementById('mobileEmail').textContent = email;
-            document.getElementById('detailEmail').textContent = email;
+            ['sidebarEmail', 'mobileEmail', 'detailEmail'].forEach(id => {
+                document.getElementById(id).textContent = email;
+            });
 
-            // Form fields
+            // Refill form
             document.getElementById('first_name').value = userData.first_name || '';
             document.getElementById('last_name').value = userData.last_name || '';
             document.getElementById('email').value = userData.email || '';
@@ -331,17 +327,13 @@
             document.getElementById('statDistance').textContent = (statsData.total_distance || 0).toFixed(1);
             document.getElementById('statCalories').textContent = statsData.total_calories || 0;
 
-            document.getElementById('joinedDate').textContent = 'December 2025';
-
         } catch (err) {
-            console.error('Failed to load profile/stats:', err);
+            console.error('Load failed:', err);
         }
     }
 
-    // Image preview
-    document.getElementById('previewImage').onclick = () => {
-        document.getElementById('profile_image').click();
-    };
+    // Image preview (local)
+    document.getElementById('previewImage').onclick = () => document.getElementById('profile_image').click();
 
     document.getElementById('profile_image').addEventListener('change', (e) => {
         const file = e.target.files[0];
@@ -356,7 +348,7 @@
         }
     });
 
-    // FIXED UPDATE WITH TOKEN REFRESH
+    // UPDATE WITH TOKEN REFRESH + DELAYED RELOAD
     document.getElementById('profileForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const messageEl = document.getElementById('updateMessage');
@@ -385,9 +377,8 @@
             let response = await sendUpdate(accessToken);
 
             if (response.status === 401) {
-                messageEl.textContent = 'Session expired, refreshing token...';
                 const refreshToken = localStorage.getItem('refresh_token');
-                if (!refreshToken) throw new Error('No refresh token. Please log in again.');
+                if (!refreshToken) throw new Error('Session expired');
 
                 const refreshResp = await fetch(BASE_URL + '/api/token/refresh/', {
                     method: 'POST',
@@ -395,7 +386,7 @@
                     body: JSON.stringify({ refresh: refreshToken })
                 });
 
-                if (!refreshResp.ok) throw new Error('Refresh failed. Logging out...');
+                if (!refreshResp.ok) throw new Error('Refresh failed');
 
                 const refreshData = await refreshResp.json();
                 localStorage.setItem('access_token', refreshData.access);
@@ -404,25 +395,17 @@
                 response = await sendUpdate(accessToken);
             }
 
-            if (!response.ok) {
-                const errData = await response.json().catch(() => ({}));
-                throw new Error(errData.detail || 'Update failed');
-            }
+            if (!response.ok) throw new Error('Update failed on server');
 
             messageEl.textContent = 'Profile updated successfully!';
             messageEl.style.color = '#28a745';
 
-            setTimeout(loadProfileAndStats, 1000);
+            // IMPORTANT: Longer delay for server to process image upload
+            setTimeout(loadProfileAndStats, 2000);
 
         } catch (err) {
-            console.error('Update error:', err);
-            messageEl.textContent = 'Update failed: ' + err.message;
+            messageEl.textContent = 'Update failed: ' + (err.message || 'Try again');
             messageEl.style.color = '#dc3545';
-
-            if (err.message.includes('Refresh failed') || err.message.includes('expired')) {
-                localStorage.clear();
-                setTimeout(() => window.location.href = 'index.html', 2000);
-            }
         }
     });
 
